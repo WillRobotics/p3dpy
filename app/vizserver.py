@@ -1,11 +1,12 @@
 from typing import List
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, WebSocket
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.encoders import jsonable_encoder
+from fastapi.logger import logger
 from fastapi.responses import JSONResponse
-from starlette.templating import Jinja2Templates
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
-import uvicorn
 
 
 class PointCloudData(BaseModel):
@@ -14,27 +15,46 @@ class PointCloudData(BaseModel):
 
 
 app = FastAPI()
-stored_data = {}
+stored_data = {'test': [1.0, 1.0, 1.0]}
 
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+app.mount("/static", StaticFiles(directory="static", html=True), name="static")
+templates = Jinja2Templates(directory="templates")
 
-@app.get("/{name}")
+
+@app.get('/', response_class=HTMLResponse)
+async def get_webpage(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.websocket("/ws")
+async def websocket_endpoint(ws: WebSocket):
+    await ws.accept()
+    try:
+        while True:
+            data = await ws.receive_text()
+            await ws.send_json({data: "test"})
+    except:
+        await ws.close()
+
+
+@app.get("/pointcloud/{name}")
 async def get_data(name: str):
     json_data = jsonable_encoder(stored_data[name])
     return JSONResponse(content=json_data)
 
 
-@app.post("/store")
+@app.post("/pointcloud/store")
 async def store_data(data: PointCloudData):
     stored_data[data.name] = data.points
     return {"res": "ok", "name": data.name}
 
 
-@app.put("/update/{name}")
+@app.put("/pointcloud/update/{name}")
 async def update_data(name: str, data: PointCloudData):
-    stored_data[data.name].extend(data.points)
+    stored_data[data.name] = data.points
     return {"res": "ok", "name": data.name}
 
 
 if __name__ == '__main__':
+    import uvicorn
     uvicorn.run(app=app)

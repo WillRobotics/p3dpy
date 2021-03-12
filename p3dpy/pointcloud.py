@@ -64,10 +64,14 @@ class PointCloud(object):
 
     @property
     def points(self):
+        if isinstance(self._points, list):
+            self._points = np.array(self._points)
         return self._points[:, self._field.slices['point']]
 
     @property
     def normals(self):
+        if isinstance(self._points, list):
+            self._points = np.array(self._points)
         if "normal" in self._field.slices:
             return self._points[:, self._field.slices['normal']]
         else:
@@ -75,6 +79,8 @@ class PointCloud(object):
 
     @property
     def colors(self):
+        if isinstance(self._points, list):
+            self._points = np.array(self._points)
         if "color" in self._field.slices:
             return self._points[:, self._field.slices['color']]
         else:

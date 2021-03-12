@@ -5,16 +5,30 @@
     <title>p3dpy viz</title>
 </head>
 <body>
-    <script src="/js/three.js"></script>
-    <script src="/js/OrbitControls.js"></script>
+    <canvas id="myCanvas"></canvas>
+    <script src="/static/js/three.js"></script>
+    <script src="/static/js/OrbitControls.js"></script>
     <script type="module">
-      import Stats from '/js/stats.module.js';
-      import { GUI } from '/js/dat.gui.module.js';
+      import Stats from '/static/js/stats.module.js';
+      import { GUI } from '/static/js/dat.gui.module.js';
       let camera, scene, renderer;
       let mesh, geometry;
 
       init();
       animate();
+
+      let url = window.location;
+      let scheme = window.location.protocol === "https:" ? 'wss://' : 'ws://';
+      let webSocketUri = scheme + url.host + '/ws';
+      let ws = new WebSocket(webSocketUri);
+      ws.onmessage = function(msg) {
+        let pc = JSON.parse(msg.data);
+        console.log(pc)
+      };
+      function wsSend () {
+        ws.send("test");
+      }
+      setInterval(wsSend, 1000);
 
       function init() {
         camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
@@ -22,7 +36,7 @@
 
         scene = new THREE.Scene();
 
-		geometry = new THREE.Geometry();
+        geometry = new THREE.Geometry();
         const SIZE = 300;
         const LENGTH = 100;
         for (let i = 0; i < LENGTH; i++) {
@@ -39,7 +53,7 @@
         mesh = new THREE.Points(geometry, material);
         scene.add(mesh);
 
-        renderer = new THREE.WebGLRenderer( { antialias: true } );
+        renderer = new THREE.WebGLRenderer( { antialias: true, canvas: document.querySelector('#myCanvas')} );
         renderer.setPixelRatio( window.devicePixelRatio );
         renderer.setSize( window.innerWidth, window.innerHeight );
         document.body.appendChild( renderer.domElement );

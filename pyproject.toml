@@ -11,7 +11,7 @@ numpy = "^1.20.1"
 scipy = "^1.6.1"
 fastapi = "^0.63.0"
 pyrealsense2 = {version = "^2.42.0", optional = true}
-uvicorn = "^0.13.4"
+uvicorn = {extras = ["standard"], version = "^0.13.4"}
 Jinja2 = "^2.11.3"
 aiofiles = "^0.6.0"
 requests = "^2.25.1"
