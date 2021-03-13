@@ -1,4 +1,6 @@
 import urllib.parse
+
+import numpy as np
 import requests
 
 from .pointcloud import PointCloud
@@ -21,4 +23,7 @@ class VizClient(object):
 
     def get_pointcloud(self, name: str):
         response = requests.get(urllib.parse.urljoin(self._url, f"pointcloud/{name}"))
-        return response.json()
+        points = response.json()
+        pointcloud = PointCloud()
+        pointcloud.points_ = np.array(points)
+        return pointcloud

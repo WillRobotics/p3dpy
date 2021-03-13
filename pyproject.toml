@@ -15,6 +15,7 @@ uvicorn = {extras = ["standard"], version = "^0.13.4"}
 Jinja2 = "^2.11.3"
 aiofiles = "^0.6.0"
 requests = "^2.25.1"
+matplotlib = {version = "^3.3.4", optional = true}
 
 [tool.poetry.dev-dependencies]
 
@@ -23,4 +24,4 @@ requires = ["poetry-core>=1.0.0", "setuptools"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.extras]
-realsense = ["pyrealsense2"]
+examples = ["matplotlib", "pyrealsense2"]

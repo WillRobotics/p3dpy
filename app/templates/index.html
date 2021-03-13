@@ -12,7 +12,8 @@
       import Stats from '/static/js/stats.module.js';
       import { GUI } from '/static/js/dat.gui.module.js';
       let camera, scene, renderer;
-      let mesh, geometry;
+      let pointcloud, geometry, positions, colors;
+      const MAX_POINTS = 20000;
 
       init();
       animate();
@@ -23,7 +24,8 @@
       let ws = new WebSocket(webSocketUri);
       ws.onmessage = function(msg) {
         let pc = JSON.parse(msg.data);
-        console.log(pc)
+        pointcloud.geometry.attributes.position.array = pc;
+        pointcloud.geometry.attributes.position.needsUpdate = true;
       };
       function wsSend () {
         ws.send("test");
@@ -37,21 +39,17 @@
         scene = new THREE.Scene();
 
         geometry = new THREE.Geometry();
-        const SIZE = 300;
-        const LENGTH = 100;
-        for (let i = 0; i < LENGTH; i++) {
-          geometry.vertices.push(new THREE.Vector3(
-            SIZE * (Math.random() - 0.5),
-            SIZE * (Math.random() - 0.5),
-            SIZE * (Math.random() - 0.5),
-          ));
-        }
         const material = new THREE.PointsMaterial({
           size: 10,
           color: 0xFFFFFF,
         });
-        mesh = new THREE.Points(geometry, material);
-        scene.add(mesh);
+        geometry = new THREE.BufferGeometry();
+        positions = new Float32Array( MAX_POINTS * 3 );
+        geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+        colors = new Uint8Array( MAX_POINTS * 3 );
+        geometry.addAttribute( 'color', new THREE.BufferAttribute( colors, 3, true) );
+        pointcloud = new THREE.Points(geometry, material);
+        scene.add(pointcloud);
 
         renderer = new THREE.WebGLRenderer( { antialias: true, canvas: document.querySelector('#myCanvas')} );
         renderer.setPixelRatio( window.devicePixelRatio );
@@ -76,8 +74,6 @@
 
       function animate() {
         requestAnimationFrame( animate );
-        mesh.rotation.x += 0.005;
-        mesh.rotation.y += 0.01;
         renderer.render( scene, camera );
       }
     </script>

@@ -5,6 +5,10 @@ from enum import IntEnum
 
 import p3dpy as pp
 
+import matplotlib.pylab as plt
+import matplotlib.animation as animation
+from mpl_toolkits.mplot3d import Axes3D
+
 
 class Preset(IntEnum):
     Custom = 0
@@ -60,12 +64,23 @@ if __name__ == "__main__":
     align = rs.align(align_to)
 
     pcd = pp.PointCloud()
-    flip_transform = [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]]
+    flip_transform = np.array([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]])
 
-    # Streaming loop
-    frame_count = 0
+    fig = plt.figure()
+    ax1 = fig.add_subplot(1, 2, 1, projection='3d')
+    ax2 = fig.add_subplot(2, 2, 2)
+    ax3 = fig.add_subplot(2, 2, 4)
+    dummy_points = np.zeros((1, 3))
+    pos = ax1.plot(*list(zip(*dummy_points)), 'o', markersize=0.5)[0]
+    ax1.invert_yaxis()
+    ax1.set_xlim(-3, 3)
+    ax1.set_ylim(-3, 3)
+    ax1.set_zlim(-1, 6)
+    depth_im = ax2.imshow(np.zeros((480, 640), dtype=np.uint8), cmap="gray", vmin=0, vmax=255)
+    color_im = ax3.imshow(np.zeros((480, 640, 3), dtype=np.uint8))
+
     try:
-        while True:
+        def update(frame):
             # Get frameset of color and depth
             frames = pipeline.wait_for_frames()
 
@@ -79,14 +94,23 @@ if __name__ == "__main__":
 
             # Validate that both frames are valid
             if not aligned_depth_frame or not color_frame:
-                continue
+                return
 
             depth_image = np.array(aligned_depth_frame.get_data())
             color_image = np.asarray(color_frame.get_data())
             rgbd_image = pp.RGBDImage(depth_image, color_image)
             pcd = rgbd_image.pointcloud(intrinsic)
             pcd.transform_(flip_transform)
-            frame_count += 1
+            pos.set_data(pcd.points[:, 0], pcd.points[:, 1])
+            pos.set_3d_properties(pcd.points[:, 2])
+            depth_offset = rgbd_image.depth.min()
+            depth_scale = rgbd_image.depth.max() - depth_offset
+            depth_temp = np.clip((rgbd_image.depth - depth_offset) / depth_scale, 0.0, 1.0)
+            depth_im.set_array((255.0 * depth_temp).astype(np.uint8))
+            color_im.set_array((255.0 * rgbd_image.color).astype(np.uint8))
+
+        anim = animation.FuncAnimation(fig, update, interval=10)
+        plt.show()
 
     finally:
         pipeline.stop()
