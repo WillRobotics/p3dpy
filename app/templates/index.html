@@ -24,7 +24,12 @@
       let ws = new WebSocket(webSocketUri);
       ws.onmessage = function(msg) {
         let pc = JSON.parse(msg.data);
-        pointcloud.geometry.attributes.position.array = pc;
+        let points = pc['test'];
+        for (let i = 0; i < points.length; i+=3) {
+          pointcloud.geometry.attributes.position.array[i] = points[i][0] * 1.0e3;
+          pointcloud.geometry.attributes.position.array[i + 1] = points[i][1] * 1.0e3;
+          pointcloud.geometry.attributes.position.array[i + 2] = points[i][2] * 1.0e3;
+        }
         pointcloud.geometry.attributes.position.needsUpdate = true;
       };
       function wsSend () {
@@ -34,20 +39,20 @@
 
       function init() {
         camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
-        camera.position.z = 400;
+        camera.position.z = 100;
 
         scene = new THREE.Scene();
 
         geometry = new THREE.Geometry();
         const material = new THREE.PointsMaterial({
-          size: 10,
+          size: 3,
           color: 0xFFFFFF,
         });
         geometry = new THREE.BufferGeometry();
         positions = new Float32Array( MAX_POINTS * 3 );
-        geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+        geometry.setAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
         colors = new Uint8Array( MAX_POINTS * 3 );
-        geometry.addAttribute( 'color', new THREE.BufferAttribute( colors, 3, true) );
+        geometry.setAttribute( 'color', new THREE.BufferAttribute( colors, 3, true) );
         pointcloud = new THREE.Points(geometry, material);
         scene.add(pointcloud);
 

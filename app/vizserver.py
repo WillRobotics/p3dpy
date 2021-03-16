@@ -15,7 +15,7 @@ class PointCloudData(BaseModel):
 
 
 app = FastAPI()
-stored_data = {'test': [[1.0, 1.0, 1.0]]}
+stored_data = {"test": [[1.0, 1.0, 1.0], [2.0, 2.0, 2.0], [3.0, 3.0, 3.0]]}
 
 app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 templates = Jinja2Templates(directory="templates")
@@ -29,12 +29,10 @@ async def get_webpage(request: Request):
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
-    try:
-        while True:
-            data = await ws.receive_text()
+    while True:
+        data = await ws.receive_text()
+        if data in stored_data:
             await ws.send_json({data: stored_data[data]})
-    except:
-        await ws.close()
 
 
 @app.get("/pointcloud/{name}")
