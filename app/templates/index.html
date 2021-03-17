@@ -13,7 +13,7 @@
       import { GUI } from '/static/js/dat.gui.module.js';
       let camera, scene, renderer;
       let pointcloud, geometry, positions, colors;
-      const MAX_POINTS = 20000;
+      const MAX_POINTS = 500000;
 
       init();
       animate();
@@ -38,7 +38,7 @@
       setInterval(wsSend, 1000);
 
       function init() {
-        camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
+        camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 2000 );
         camera.position.z = 100;
 
         scene = new THREE.Scene();
@@ -65,7 +65,7 @@
         const controls = new THREE.OrbitControls( camera, renderer.domElement );
         controls.maxPolarAngle = Math.PI * 0.5;
         controls.minDistance = 100;
-        controls.maxDistance = 5000;
+        controls.maxDistance = 10000;
 
         window.addEventListener( 'resize', onWindowResize );
 

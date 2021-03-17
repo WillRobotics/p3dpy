@@ -55,4 +55,9 @@ async def update_data(name: str, data: PointCloudData):
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run(app=app)
+    import argparse
+    parser = argparse.ArgumentParser(description='Visualization server for p3dpy.')
+    parser.add_argument('--host', type=str, default='127.0.0.1', help="Host address.")
+    parser.add_argument('--port', type=int, default=8000, help="Port number.")
+    args = parser.parse_args()
+    uvicorn.run(app=app, host=args.host, port=args.port)
