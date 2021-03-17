@@ -5,6 +5,10 @@ from enum import IntEnum
 
 import p3dpy as pp
 
+import argparse
+parser = argparse.ArgumentParser(description='Visualization client example.')
+parser.add_argument('--host', type=str, default='localhost', help="Host address.")
+args = parser.parse_args()
 
 class Preset(IntEnum):
     Custom = 0
@@ -61,7 +65,7 @@ if __name__ == "__main__":
 
     pcd = pp.PointCloud()
     flip_transform = np.array([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]])
-    client = pp.VizClient()
+    client = pp.VizClient(host=args.host)
 
     try:
         while True:

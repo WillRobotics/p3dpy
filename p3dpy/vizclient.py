@@ -7,8 +7,8 @@ from .pointcloud import PointCloud
 
 
 class VizClient(object):
-    def __init__(self, url: str = "http://localhost:8000"):
-        self._url = url
+    def __init__(self, host: str = "localhost", port: int = 8000):
+        self._url = "http://%s:%d" % (host, port)
 
     def post_pointcloud(self, pointcloud: PointCloud, name: str = ""):
         points = pointcloud.points.tolist()
