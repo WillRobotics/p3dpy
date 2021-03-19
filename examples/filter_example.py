@@ -6,3 +6,6 @@ print(len(pc), len(pc1))
 
 pc2 = pp.filter.statistical_outlier_removal(pc, 10, 0.6)
 print(len(pc), len(pc2))
+
+pc3 = pp.filter.voxel_grid_filter(pc, 0.02)
+print(len(pc), len(pc3))
