@@ -7,6 +7,15 @@ from scipy.spatial import KDTree
 from . import pointcloud
 
 
+def random_sampling(pc: pointcloud.PointCloud, n_sample: int) -> pointcloud.PointCloud:
+    return pointcloud.PointCloud(pc.points_[np.random.randint(len(pc), size=n_sample), :], field=pc._field)
+
+
+def pass_through_filter(min_lim: float, max_lim: float, axis: int = 0) -> pointcloud.PointCloud:
+    axis_pc = pc.points[:, axis]
+    return pointcloud.PointCloud(pc.points_[(axis_pc >= min_lim) & (axis_pc <= max_lim), :], field=pc._field)
+
+
 def radius_outlier_removal(pc: pointcloud.PointCloud, radius: float, neighbor_counts: int) -> pointcloud.PointCloud:
     tree = KDTree(pc.points)
     mask = [len(tree.query_ball_point(p, radius)) > neighbor_counts for p in pc.points]
