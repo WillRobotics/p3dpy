@@ -11,12 +11,24 @@ class RANSACResult(object):
 
 def _compute_plane(pc: pointcloud.PointCloud, inliers: List[int]) -> np.ndarray:
     cands = pc.points[inliers, :]
-    mean = cands.mean(axis=0)
-    cands0 -= mean
-    u, s, v = np.linalg.svd(cands0)
-    nv = v[-1, :]
-    param = np.r_[nv, -np.dot(mean, nv)]
-    return param
+    if len(cands) == 3:
+        e0 = cands[1] - cands[0]
+        e1 = cands[2] - cands[0]
+        abc = np.cross(e0, e1)
+        norm = np.linalg.norm(abc)
+        if norm == 0:
+            return np.zeros(4)
+        abc /= norm
+        return np.r_[abc, -np.dot(abc, cands[0])]
+    elif len(cands) > 3:
+        mean = cands.mean(axis=0)
+        cands -= mean
+        u, s, v = np.linalg.svd(cands)
+        nv = v[-1, :]
+        param = np.r_[nv, -np.dot(mean, nv)]
+        return param
+    else:
+        raise ValueError("The number of inliers must be 3 or more.")
 
 
 def _evaluate_ransac(pc: pointcloud.PointCloud, plane: np.ndarray, dist_thresh: float) -> (RANSACResult, np.ndarray, float):
@@ -43,6 +55,6 @@ def segmentation_plane(pc: pointcloud.PointCloud, dist_thresh: float = 0.1, rans
             res = tmp_res
             best_plane = plane
 
-    best_plane = _compute_plane(pc, mask)
     _, mask, _ = _evaluate_ransac(pc, best_plane, dist_thresh)
+    best_plane = _compute_plane(pc, mask)
     return best_plane, mask

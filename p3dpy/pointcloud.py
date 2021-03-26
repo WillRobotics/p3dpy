@@ -62,6 +62,9 @@ class PointCloud(object):
     def __len__(self):
         return len(self._points)
 
+    def finalize(self):
+        self._points = np.array(self._points)
+
     @property
     def points(self):
         if isinstance(self._points, list):
