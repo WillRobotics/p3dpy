@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+import os
 from typing import List
 from fastapi import FastAPI, Request, WebSocket
 from fastapi.responses import HTMLResponse
@@ -8,6 +10,7 @@ from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
+import p3dpy
 
 class PointCloudData(BaseModel):
     name: str
@@ -17,8 +20,8 @@ class PointCloudData(BaseModel):
 app = FastAPI()
 stored_data = {"test": [[1.0, 1.0, 1.0], [2.0, 2.0, 2.0], [3.0, 3.0, 3.0]]}
 
-app.mount("/static", StaticFiles(directory="static", html=True), name="static")
-templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(p3dpy.__file__), "app/static"), html=True), name="static")
+templates = Jinja2Templates(directory=os.path.join(os.path.dirname(p3dpy.__file__), "app/templates"))
 
 
 @app.get('/', response_class=HTMLResponse)
@@ -53,7 +56,7 @@ async def update_data(name: str, data: PointCloudData):
     return {"res": "ok", "name": data.name}
 
 
-if __name__ == '__main__':
+def main():
     import uvicorn
     import argparse
     parser = argparse.ArgumentParser(description='Visualization server for p3dpy.')
@@ -61,3 +64,6 @@ if __name__ == '__main__':
     parser.add_argument('--port', type=int, default=8000, help="Port number.")
     args = parser.parse_args()
     uvicorn.run(app=app, host=args.host, port=args.port)
+
+if __name__ == '__main__':
+    main()
