@@ -1,6 +1,7 @@
 import p3dpy as pp
 
 import numpy as np
+from scipy.spatial import ConvexHull
 import transforms3d as t3d
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -23,6 +24,8 @@ ax = fig.add_subplot(111, projection='3d')
 pc.transform_(trans.T)
 plane_pts = pc.points[mask, :]
 not_plane_pts = pc.points[~mask, :]
+hull = ConvexHull(plane_pts[:, :2])
 ax.scatter(plane_pts[:, 0], plane_pts[:, 1], plane_pts[:, 2], s=20, c="blue")
-ax.scatter(not_plane_pts[:, 0], not_plane_pts[:, 1], not_plane_pts[:, 2], s=20, c="red")
+ax.scatter(not_plane_pts[:, 0], not_plane_pts[:, 1], not_plane_pts[:, 2], s=20, c="green")
+ax.plot(plane_pts[hull.vertices, 0], plane_pts[hull.vertices, 1], plane_pts[hull.vertices, 2], 'r--', lw=10)
 plt.show()
