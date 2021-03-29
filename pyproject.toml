@@ -15,9 +15,10 @@ Jinja2 = "^2.11.3"
 aiofiles = "^0.6.0"
 requests = "^2.25.1"
 python-lzf = "^0.2.4"
-transforms3d = "^0.3.1"
 pyrealsense2 = {version = "^2.42.0", optional = true}
 matplotlib = {version = "^3.3.4", optional = true}
+transforms3d = {version = "^0.3.1", optional = true}
+scikit-learn = {version = "^0.24.1", optional = true}
 
 [tool.poetry.dev-dependencies]
 
@@ -26,4 +27,4 @@ requires = ["poetry-core>=1.0.0", "setuptools"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.extras]
-examples = ["matplotlib", "pyrealsense2"]
+examples = ["matplotlib", "transforms3d", "scikit-learn", "pyrealsense2"]

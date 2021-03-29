@@ -2,30 +2,46 @@ import p3dpy as pp
 
 import numpy as np
 from scipy.spatial import ConvexHull
+from sklearn.cluster import DBSCAN
 import transforms3d as t3d
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
+# Segment plane
 pc = pp.io.load_pcd('data/test0.pcd')
 pc = pp.filter.remove_invalid_points(pc)
 pc = pp.filter.voxel_grid_filter(pc, 0.01)
 print(pc.points)
 plane, mask = pp.segmentation.segmentation_plane(pc, dist_thresh=0.01)
 print(plane, sum(mask))
+
+# Rotate to plane coordinate
 axis = np.array([-plane[1], plane[0], 0.0])
 axis /= np.linalg.norm(axis)
 angle = np.arccos(plane[2] / np.linalg.norm(plane[:3]))
 trans = np.identity(4)
 trans[:3, :3] = t3d.axangles.axangle2mat(axis, angle)
-
-fig = plt.figure(figsize = (8, 8))
-ax = fig.add_subplot(111, projection='3d')
 pc.transform_(trans.T)
+
+# Divide a plane and objects
 plane_pts = pc.points[mask, :]
 not_plane_pts = pc.points[~mask, :]
 hull = ConvexHull(plane_pts[:, :2])
+
+# Cluster objects
+db = DBSCAN(eps=0.1).fit(not_plane_pts)
+labels = db.labels_
+n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+print("Number of class:", n_clusters)
+mask_0 = labels == 0
+mask_1 = labels == 1
+
+# Draw results
+fig = plt.figure(figsize = (8, 8))
+ax = fig.add_subplot(111, projection='3d')
 ax.scatter(plane_pts[:, 0], plane_pts[:, 1], plane_pts[:, 2], s=20, c="blue")
-ax.scatter(not_plane_pts[:, 0], not_plane_pts[:, 1], not_plane_pts[:, 2], s=20, c="green")
+ax.scatter(not_plane_pts[mask_0, 0], not_plane_pts[mask_0, 1], not_plane_pts[mask_0, 2], s=20, c="green")
+ax.scatter(not_plane_pts[mask_1, 0], not_plane_pts[mask_1, 1], not_plane_pts[mask_1, 2], s=20, c="lime")
 ax.plot(plane_pts[hull.vertices, 0], plane_pts[hull.vertices, 1], plane_pts[hull.vertices, 2], 'r--', lw=10)
 plt.show()
