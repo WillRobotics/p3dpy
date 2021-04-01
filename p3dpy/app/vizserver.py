@@ -15,10 +15,11 @@ import p3dpy
 class PointCloudData(BaseModel):
     name: str
     points: List[List[float]]
+    colors: List[List[int]]
 
 
 app = FastAPI()
-stored_data = {"test": [[1.0, 1.0, 1.0], [2.0, 2.0, 2.0], [3.0, 3.0, 3.0]]}
+stored_data = {"test": [[[1.0, 1.0, 1.0], [2.0, 2.0, 2.0], [3.0, 3.0, 3.0]], [[255, 0, 0], [255, 0, 0], [255, 0, 0]]]}
 
 app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(p3dpy.__file__), "app/static"), html=True), name="static")
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(p3dpy.__file__), "app/templates"))
@@ -46,13 +47,13 @@ async def get_data(name: str):
 
 @app.post("/pointcloud/store")
 async def store_data(data: PointCloudData):
-    stored_data[data.name] = data.points
+    stored_data[data.name] = [data.points, data.colors]
     return {"res": "ok", "name": data.name}
 
 
 @app.put("/pointcloud/update/{name}")
 async def update_data(name: str, data: PointCloudData):
-    stored_data[data.name] = data.points
+    stored_data[data.name] = [data.points, data.colors]
     return {"res": "ok", "name": data.name}
 
 
