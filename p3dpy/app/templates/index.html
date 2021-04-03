@@ -17,11 +17,13 @@
 
       let guiCtrl = function(){
         this.background = "#000000";
+        this.message = "";
       };
 
       let gui = new GUI();
       let guiObj = new guiCtrl();
       gui.addColor( guiObj , 'background' ).onChange(setBackgroundColor);
+      gui.add( guiObj, 'message' );
 
       let stats = new Stats();
       stats.showPanel(0);

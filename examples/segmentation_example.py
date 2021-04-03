@@ -4,8 +4,6 @@ import numpy as np
 from scipy.spatial import ConvexHull
 from sklearn.cluster import DBSCAN
 import transforms3d as t3d
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
 
 # Segment plane
@@ -37,11 +35,13 @@ print("Number of class:", n_clusters)
 mask_0 = labels == 0
 mask_1 = labels == 1
 
+result_pts = np.r_[np.c_[plane_pts, np.tile([0.0, 0.0, 1.0], (len(plane_pts), 1))],
+                   np.c_[not_plane_pts[mask_0], np.tile([0.0, 1.0, 0.0], (len(not_plane_pts[mask_0]), 1))],
+                   np.c_[not_plane_pts[mask_1], np.tile([1.0, 0.0, 1.0], (len(not_plane_pts[mask_1]), 1))]]
+
 # Draw results
-fig = plt.figure(figsize = (8, 8))
-ax = fig.add_subplot(111, projection='3d')
-ax.scatter(plane_pts[:, 0], plane_pts[:, 1], plane_pts[:, 2], s=20, c="blue")
-ax.scatter(not_plane_pts[mask_0, 0], not_plane_pts[mask_0, 1], not_plane_pts[mask_0, 2], s=20, c="green")
-ax.scatter(not_plane_pts[mask_1, 0], not_plane_pts[mask_1, 1], not_plane_pts[mask_1, 2], s=20, c="lime")
-ax.plot(plane_pts[hull.vertices, 0], plane_pts[hull.vertices, 1], plane_pts[hull.vertices, 2], 'r--', lw=10)
-plt.show()
+result_pc = pp.PointCloud(result_pts, pp.pointcloud.PointXYZRGBAField())
+client = pp.VizClient()
+pc = pp.io.load_pcd('data/bunny.pcd')
+res = client.post_pointcloud(result_pc, 'test')
+print(res)
