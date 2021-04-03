@@ -15,6 +15,18 @@
       let pointcloud, geometry, positions, colors;
       const MAX_POINTS = 500000;
 
+      let guiCtrl = function(){
+        this.background = "#000000";
+      };
+
+      let gui = new GUI();
+      let guiObj = new guiCtrl();
+      gui.addColor( guiObj , 'background' ).onChange(setBackgroundColor);
+
+      let stats = new Stats();
+      stats.showPanel(0);
+      document.body.appendChild( stats.dom );
+
       init();
       animate();
 
@@ -50,7 +62,7 @@
         scene = new THREE.Scene();
 
         geometry = new THREE.Geometry();
-        const material = new THREE.PointsMaterial({size: 0.3, opacity: 1, vertexColors: THREE.VertexColors});
+        const material = new THREE.PointsMaterial({size: 1.0, opacity: 1, vertexColors: THREE.VertexColors});
         geometry = new THREE.BufferGeometry();
         positions = new Float32Array( MAX_POINTS * 3 );
         geometry.setAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
@@ -82,7 +94,13 @@
 
       function animate() {
         requestAnimationFrame( animate );
+        stats.begin();
         renderer.render( scene, camera );
+        stats.end();
+      }
+
+      function setBackgroundColor(){
+        scene.background = new THREE.Color( guiObj.background );
       }
     </script>
 </body>
