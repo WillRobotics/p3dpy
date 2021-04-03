@@ -116,3 +116,14 @@ class PointCloud(object):
         pc = PointCloud(copy.deepcopy(self._points), self._field)
         pc.transform_(trans)
         return pc
+
+    def set_uniform_color(self, color: np.ndarray):
+        if "colors" in self._field.slices:
+            self._points[:, self._field.slices["color"]] = color
+        else:
+            if isinstance(self._field, PointXYZField):
+                self._field = PointXYZRGBField()
+                self._points = np.c_[self._points, np.tile(color, (len(self), 1))]
+            elif isinstance(self._field, PointXYZNormalField):
+                self._field = PointXYZRGBNormalField()
+                self._points = np.c_[self.points, np.tile(color, (len(self), 1)), self.normals]

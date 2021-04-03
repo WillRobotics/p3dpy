@@ -8,9 +8,7 @@ args = parser.parse_args()
 
 client = VizClient(host=args.host)
 pc = pp.io.load_pcd('data/bunny.pcd')
-pc._field = pp.pointcloud.PointXYZRGBField()
-colors = np.tile([1.0, 0.0, 0.0], (len(pc), 1))
-pc._points = np.c_[pc._points, colors]
+pc.set_uniform_color([1.0, 0.0, 0.0])
 res = client.post_pointcloud(pc, 'test')
 res_pc = client.get_pointcloud(res["name"])
 print(res_pc.points)
