@@ -26,7 +26,9 @@ def radius_outlier_removal(pc: pointcloud.PointCloud, radius: float, neighbor_co
     return pointcloud.PointCloud(pc._points[mask, :], pc._field)
 
 
-def statistical_outlier_removal(pc: pointcloud.PointCloud, k_neighbors: int, std_ratio: float) -> pointcloud.PointCloud:
+def statistical_outlier_removal(
+    pc: pointcloud.PointCloud, k_neighbors: int, std_ratio: float
+) -> pointcloud.PointCloud:
     tree = KDTree(pc.points)
     dd, ii = tree.query(pc.points, k_neighbors)
     avg_d = dd.mean(axis=1)
@@ -44,7 +46,7 @@ def voxel_grid_filter(pc: pointcloud.PointCloud, voxel_size: float):
         def add_point(self, point: np.ndarray):
             self._point += point
             self._num_points += 1
-            
+
         def get_mean(self):
             return self._point / self._num_points
 

@@ -15,14 +15,20 @@ class VizClient(object):
         colors = pointcloud.colors
         colors = (colors * 255).astype(np.uint8).tolist() if colors is not None else []
         name = id(pointcloud) if name == "" else name
-        response = requests.post(urllib.parse.urljoin(self._url, "pointcloud/store"), json={"name": name, "points": points, "colors": colors})
+        response = requests.post(
+            urllib.parse.urljoin(self._url, "pointcloud/store"),
+            json={"name": name, "points": points, "colors": colors},
+        )
         return response.json()
 
     def update_pointcloud(self, name: str, pointcloud: PointCloud):
         points = pointcloud.points.tolist()
         colors = pointcloud.colors
         colors = (colors * 255).astype(np.uint8).tolist() if colors is not None else []
-        response = requests.put(urllib.parse.urljoin(self._url, f"pointcloud/update/{name}"), json={"name": "", "points": points, "colors":colors})
+        response = requests.put(
+            urllib.parse.urljoin(self._url, f"pointcloud/update/{name}"),
+            json={"name": "", "points": points, "colors": colors},
+        )
         return response.json()
 
     def get_pointcloud(self, name: str):

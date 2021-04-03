@@ -31,7 +31,9 @@ def _compute_plane(pc: pointcloud.PointCloud, inliers: List[int]) -> np.ndarray:
         raise ValueError("The number of inliers must be 3 or more.")
 
 
-def _evaluate_ransac(pc: pointcloud.PointCloud, plane: np.ndarray, dist_thresh: float) -> (RANSACResult, np.ndarray, float):
+def _evaluate_ransac(
+    pc: pointcloud.PointCloud, plane: np.ndarray, dist_thresh: float
+) -> (RANSACResult, np.ndarray, float):
     dists = np.abs(np.dot(np.c_[pc.points, np.ones(len(pc))], plane))
     mask = dists < dist_thresh
     dists = dists[mask]
@@ -42,16 +44,18 @@ def _evaluate_ransac(pc: pointcloud.PointCloud, plane: np.ndarray, dist_thresh: 
         return RANSACResult(len(dists) / len(pc), error / np.sqrt(len(dists))), mask, error
 
 
-def segmentation_plane(pc: pointcloud.PointCloud, dist_thresh: float = 0.1, ransac_n: int = 3, num_iter: int = 100) -> (np.ndarray, np.ndarray):
+def segmentation_plane(
+    pc: pointcloud.PointCloud, dist_thresh: float = 0.1, ransac_n: int = 3, num_iter: int = 100
+) -> (np.ndarray, np.ndarray):
     res = RANSACResult()
     best_plane = np.zeros(4)
     for n in range(num_iter):
         inliers = np.random.choice(len(pc), ransac_n, replace=False)
         plane = _compute_plane(pc, inliers)
         tmp_res, mask, error = _evaluate_ransac(pc, plane, dist_thresh)
-        if tmp_res._fitness > res._fitness or\
-           (res._fitness == tmp_res._fitness and\
-            tmp_res._inlier_rmse < res._inlier_rmse):
+        if tmp_res._fitness > res._fitness or (
+            res._fitness == tmp_res._fitness and tmp_res._inlier_rmse < res._inlier_rmse
+        ):
             res = tmp_res
             best_plane = plane
 

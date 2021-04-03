@@ -4,6 +4,7 @@ import numpy as np
 
 class FieldBase(object):
     slices = {}
+
     def size(self):
         return 0
 
@@ -13,6 +14,7 @@ class PointXYZField(FieldBase):
     Y = 1
     Z = 2
     slices = {"point": slice(3)}
+
     def size(self):
         return 3
 
@@ -22,6 +24,7 @@ class PointXYZRGBField(PointXYZField):
     G = 4
     B = 5
     slices = {"point": slice(3), "color": slice(3, 6)}
+
     def size(self):
         return 6
 
@@ -32,6 +35,7 @@ class PointXYZRGBAField(PointXYZField):
     B = 5
     A = 6
     slices = {"point": slice(3), "color": slice(3, 6), "alpha": slice(6, 7)}
+
     def size(self):
         return 7
 
@@ -41,6 +45,7 @@ class PointXYZNormalField(PointXYZField):
     NY = 4
     NZ = 5
     slices = {"point": slice(3), "normal": slice(3, 6)}
+
     def size(self):
         return 6
 
@@ -50,6 +55,7 @@ class PointXYZRGBNormalField(PointXYZRGBField):
     NY = 7
     NZ = 8
     slices = {"point": slice(3), "color": slice(3, 6), "normal": slice(6, 9)}
+
     def size(self):
         return 9
 
@@ -69,14 +75,14 @@ class PointCloud(object):
     def points(self):
         if isinstance(self._points, list):
             self._points = np.array(self._points)
-        return self._points[:, self._field.slices['point']]
+        return self._points[:, self._field.slices["point"]]
 
     @property
     def normals(self):
         if isinstance(self._points, list):
             self._points = np.array(self._points)
         if "normal" in self._field.slices:
-            return self._points[:, self._field.slices['normal']]
+            return self._points[:, self._field.slices["normal"]]
         else:
             return None
 
@@ -85,7 +91,7 @@ class PointCloud(object):
         if isinstance(self._points, list):
             self._points = np.array(self._points)
         if "color" in self._field.slices:
-            return self._points[:, self._field.slices['color']]
+            return self._points[:, self._field.slices["color"]]
         else:
             return None
 
@@ -102,9 +108,9 @@ class PointCloud(object):
     def transform_(self, trans: np.ndarray):
         if isinstance(self._points, list):
             self._points = np.array(self._points)
-        self._points[:, self._field.slices['point']] = np.dot(self.points, trans[:3, :3].T) + trans[:3, 3]
+        self._points[:, self._field.slices["point"]] = np.dot(self.points, trans[:3, :3].T) + trans[:3, 3]
         if "normal" in self._field.slices:
-            self._points[:, self._field.slices['normal']] = np.dot(self.normals, trans[:3, :3].T)
+            self._points[:, self._field.slices["normal"]] = np.dot(self.normals, trans[:3, :3].T)
 
     def transform(self, trans: np.ndarray):
         pc = PointCloud(copy.deepcopy(self._points), self._field)

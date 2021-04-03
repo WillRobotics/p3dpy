@@ -4,13 +4,22 @@ from . import pointcloud
 
 
 class RGBDImage(object):
-    def __init__(self, depth_img: np.ndarray, color_img: Optional[np.ndarray] = None, depth_scale: float = 1000.0):
-        if color_img is not None and depth_img.shape[0] != color_img.shape[0] and depth_img.shape[1] != color_img.shape[1]:
+    def __init__(
+        self,
+        depth_img: np.ndarray,
+        color_img: Optional[np.ndarray] = None,
+        depth_scale: float = 1000.0,
+    ):
+        if (
+            color_img is not None
+            and depth_img.shape[0] != color_img.shape[0]
+            and depth_img.shape[1] != color_img.shape[1]
+        ):
             raise ValueError("The image sizes of the depth image and the color image do not match.")
         self._depth_img = depth_img.astype(np.float64) / depth_scale
         self._color_img = color_img.astype(np.float64)
         if color_img.dtype == np.uint8:
-           self._color_img /= 255.0
+            self._color_img /= 255.0
 
     @property
     def depth(self):

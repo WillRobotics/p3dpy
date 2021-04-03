@@ -4,9 +4,11 @@ from scipy.spatial import KDTree
 from . import pointcloud
 
 
-def _kabsh(source: pointcloud.PointCloud,
-           target: pointcloud.PointCloud,
-           corres: List[int]) -> np.ndarray:
+def _kabsh(
+    source: pointcloud.PointCloud,
+    target: pointcloud.PointCloud,
+    corres: List[int],
+) -> np.ndarray:
     src_avg = source.points.mean(axis=0)
     trg_avg = target.points[corres, :].mean(axis=0)
     hh = np.dot((source.points - src_avg).T, target.points[corres, :] - trg_avg)
@@ -25,12 +27,14 @@ def compute_rmse(source: pointcloud.PointCloud, target_tree: KDTree) -> float:
     return sum(target_tree.query(source.points)[0]) / len(source)
 
 
-def icp_registration(source: pointcloud.PointCloud,
-                     target: pointcloud.PointCloud,
-                     dist_thresh: float,
-                     initial_pos: np.ndarray=np.identity(4),
-                     tol: float = 1.0e-6,
-                     max_itr: int = 30) -> np.ndarray:
+def icp_registration(
+    source: pointcloud.PointCloud,
+    target: pointcloud.PointCloud,
+    dist_thresh: float,
+    initial_pos: np.ndarray = np.identity(4),
+    tol: float = 1.0e-6,
+    max_itr: int = 30,
+) -> np.ndarray:
     target_tree = KDTree(target.points)
     cur_pc = pointcloud.PointCloud(source.points, field=pointcloud.PointXYZField())
     trans = initial_pos

@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 import p3dpy
 
+
 class PointCloudData(BaseModel):
     name: str
     points: List[List[float]]
@@ -21,11 +22,15 @@ class PointCloudData(BaseModel):
 app = FastAPI()
 stored_data = {"test": [[[1.0, 1.0, 1.0], [2.0, 2.0, 2.0], [3.0, 3.0, 3.0]], [[255, 0, 0], [255, 0, 0], [255, 0, 0]]]}
 
-app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(p3dpy.__file__), "app/static"), html=True), name="static")
+app.mount(
+    "/static",
+    StaticFiles(directory=os.path.join(os.path.dirname(p3dpy.__file__), "app/static"), html=True),
+    name="static",
+)
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(p3dpy.__file__), "app/templates"))
 
 
-@app.get('/', response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse)
 async def get_webpage(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
@@ -60,11 +65,13 @@ async def update_data(name: str, data: PointCloudData):
 def main():
     import uvicorn
     import argparse
-    parser = argparse.ArgumentParser(description='Visualization server for p3dpy.')
-    parser.add_argument('--host', type=str, default='127.0.0.1', help="Host address.")
-    parser.add_argument('--port', type=int, default=8000, help="Port number.")
+
+    parser = argparse.ArgumentParser(description="Visualization server for p3dpy.")
+    parser.add_argument("--host", type=str, default="127.0.0.1", help="Host address.")
+    parser.add_argument("--port", type=int, default=8000, help="Port number.")
     args = parser.parse_args()
     uvicorn.run(app=app, host=args.host, port=args.port)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
