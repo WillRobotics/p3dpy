@@ -44,7 +44,6 @@ result_pts = np.r_[np.c_[plane_pts, np.tile([0.0, 0.0, 1.0], (len(plane_pts), 1)
 # Draw results
 result_pc = pp.PointCloud(result_pts, pp.pointcloud.PointXYZRGBAField())
 client = pp.VizClient()
-pc = pp.io.load_pcd('data/bunny.pcd')
 res = client.post_pointcloud(result_pc, 'test')
 print(res)
 

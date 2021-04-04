@@ -1,5 +1,6 @@
 import asyncio
 from asyncio.subprocess import PIPE, STDOUT
+import webbrowser
 
 
 _process = None
@@ -41,5 +42,7 @@ def vizspawn(host: str = "127.0.0.1", port: int = 8000):
     asyncio.get_event_loop().run_until_complete(_spawn_vizserver(host=host, port=port))
 
 
-def vizloop():
+def vizloop(browser: bool = False, url: str = "http://127.0.0.1:8000"):
+    if browser:
+        webbrowser.open(url)
     asyncio.get_event_loop().run_until_complete(_loop())
