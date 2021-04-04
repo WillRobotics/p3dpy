@@ -7,6 +7,8 @@ _process = None
 
 async def _spawn_vizserver(host: str = "127.0.0.1", port: int = 8000, timeout: int = 3):
     global _process
+    if _process is not None:
+        raise RuntimeError("Already vizserver has been spawned.")
     _process = await asyncio.create_subprocess_exec(*["vizserver", "--host", host, "--port", str(port)], stdout=PIPE, stderr=STDOUT)
     while True:
         try:
