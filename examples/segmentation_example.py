@@ -6,6 +6,8 @@ from sklearn.cluster import DBSCAN
 import transforms3d as t3d
 
 
+pp.vizspawn()
+
 # Segment plane
 pc = pp.io.load_pcd('data/test0.pcd')
 pc = pp.filter.remove_invalid_points(pc)
@@ -45,3 +47,5 @@ client = pp.VizClient()
 pc = pp.io.load_pcd('data/bunny.pcd')
 res = client.post_pointcloud(result_pc, 'test')
 print(res)
+
+pp.vizloop()
