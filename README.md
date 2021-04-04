@@ -14,3 +14,6 @@ Numpy based simple pointcloud tools.
 ```
 pip install git+https://github.com/WillRobotics/p3dpy
 ```
+
+## Visualization
+![viewer](https://raw.githubusercontent.com/WillRobotics/p3dpy/master/assets/viewer.png)

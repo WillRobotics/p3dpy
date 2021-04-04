@@ -34,7 +34,8 @@ async def _loop(timeout: int = 3):
         except asyncio.TimeoutError:
             pass
         else:
-            print(line.decode().rstrip()) 
+            print(line.decode().rstrip())
+            continue
         await asyncio.sleep(1)
 
 
