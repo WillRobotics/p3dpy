@@ -11,7 +11,7 @@
     <script type="module">
       import Stats from '/static/js/stats.module.js';
       import { GUI } from '/static/js/dat.gui.module.js';
-      let camera, scene, renderer;
+      let camera, scene, renderer, controls;
       let pointcloud, geometry, positions, colors;
       const MAX_POINTS = 500000;
 
@@ -58,7 +58,7 @@
       setInterval(wsSend, 1000);
 
       function init() {
-        camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 2000 );
+        camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 2000 );
         camera.position.z = 100;
 
         scene = new THREE.Scene();
@@ -71,6 +71,7 @@
         colors = new Uint8Array( MAX_POINTS * 3 );
         geometry.setAttribute( 'color', new THREE.BufferAttribute( colors, 3, true) );
         pointcloud = new THREE.Points(geometry, material);
+        pointcloud.traverse( function( object ) { object.frustumCulled = false; } );
         scene.add(pointcloud);
 
         renderer = new THREE.WebGLRenderer( { antialias: true, canvas: document.querySelector('#myCanvas')} );
@@ -79,10 +80,8 @@
         document.body.appendChild( renderer.domElement );
 
         // controls
-        const controls = new THREE.OrbitControls( camera, renderer.domElement );
-        controls.maxPolarAngle = Math.PI * 0.5;
-        controls.minDistance = 100;
-        controls.maxDistance = 10000;
+        controls = new THREE.OrbitControls( camera, renderer.domElement );
+        controls.enableDamping = true;
 
         window.addEventListener( 'resize', onWindowResize );
 
@@ -97,6 +96,7 @@
       function animate() {
         requestAnimationFrame( animate );
         stats.begin();
+        controls.update();
         renderer.render( scene, camera );
         stats.end();
       }
