@@ -1,21 +1,27 @@
+from typing import Optional
 import copy
 import numpy as np
 
 
 class FieldBase(object):
-    slices = {}
+    def __init__(self):
+        self.slices = {}
 
-    def size(self):
+    def size(self) -> int:
         return 0
+
+    def has_field(self, name: str) -> bool:
+        return name in self.slices
 
 
 class PointXYZField(FieldBase):
     X = 0
     Y = 1
     Z = 2
-    slices = {"point": slice(3)}
+    def __init__(self):
+        self.slices = {"point": slice(3)}
 
-    def size(self):
+    def size(self) -> int:
         return 3
 
 
@@ -23,9 +29,10 @@ class PointXYZRGBField(PointXYZField):
     R = 3
     G = 4
     B = 5
-    slices = {"point": slice(3), "color": slice(3, 6)}
+    def __init__(self):
+        self.slices = {"point": slice(3), "color": slice(3, 6)}
 
-    def size(self):
+    def size(self) -> int:
         return 6
 
 
@@ -34,9 +41,10 @@ class PointXYZRGBAField(PointXYZField):
     G = 4
     B = 5
     A = 6
-    slices = {"point": slice(3), "color": slice(3, 6), "alpha": slice(6, 7)}
+    def __init__(self):
+        self.slices = {"point": slice(3), "color": slice(3, 6), "alpha": slice(6, 7)}
 
-    def size(self):
+    def size(self) -> int:
         return 7
 
 
@@ -44,9 +52,10 @@ class PointXYZNormalField(PointXYZField):
     NX = 3
     NY = 4
     NZ = 5
-    slices = {"point": slice(3), "normal": slice(3, 6)}
+    def __init__(self):
+        self.slices = {"point": slice(3), "normal": slice(3, 6)}
 
-    def size(self):
+    def size(self) -> int:
         return 6
 
 
@@ -54,10 +63,26 @@ class PointXYZRGBNormalField(PointXYZRGBField):
     NX = 6
     NY = 7
     NZ = 8
-    slices = {"point": slice(3), "color": slice(3, 6), "normal": slice(6, 9)}
+    def __init__(self):
+        self.slices = {"point": slice(3), "color": slice(3, 6), "normal": slice(6, 9)}
 
-    def size(self):
+    def size(self) -> int:
         return 9
+
+
+class DynamicField(FieldBase):
+    def __init__(self, init_field: Optional[FieldBase] = None):
+        if init_field is None:
+            self.slices = {}
+        else:
+            self.slices = init_field.slices
+
+    def add_field(self, name: str, n_elem: slice):
+        size = self.size()
+        self.slices.update({name: slice(size, size + n_elem)})
+
+    def size(self) -> int:
+        return max([s.stop() for s in self.slices.values()])
 
 
 class PointCloud(object):
@@ -67,6 +92,9 @@ class PointCloud(object):
 
     def __len__(self):
         return len(self._points)
+
+    def has_field(self, name: str) -> bool:
+        return self._field.has_field(name)
 
     def finalize(self):
         self._points = np.array(self._points)
@@ -81,7 +109,7 @@ class PointCloud(object):
     def normals(self):
         if isinstance(self._points, list):
             self._points = np.array(self._points)
-        if "normal" in self._field.slices:
+        if self.has_field("normal"):
             return self._points[:, self._field.slices["normal"]]
         else:
             return None
@@ -90,7 +118,7 @@ class PointCloud(object):
     def colors(self):
         if isinstance(self._points, list):
             self._points = np.array(self._points)
-        if "color" in self._field.slices:
+        if self.has_field("color"):
             return self._points[:, self._field.slices["color"]]
         else:
             return None
@@ -109,7 +137,7 @@ class PointCloud(object):
         if isinstance(self._points, list):
             self._points = np.array(self._points)
         self._points[:, self._field.slices["point"]] = np.dot(self.points, trans[:3, :3].T) + trans[:3, 3]
-        if "normal" in self._field.slices:
+        if self.has_field("normal"):
             self._points[:, self._field.slices["normal"]] = np.dot(self.normals, trans[:3, :3].T)
 
     def transform(self, trans: np.ndarray):
@@ -118,12 +146,9 @@ class PointCloud(object):
         return pc
 
     def set_uniform_color(self, color: np.ndarray):
-        if "colors" in self._field.slices:
+        if self.has_field("colors"):
             self._points[:, self._field.slices["color"]] = color
         else:
-            if isinstance(self._field, PointXYZField):
-                self._field = PointXYZRGBField()
-                self._points = np.c_[self._points, np.tile(color, (len(self), 1))]
-            elif isinstance(self._field, PointXYZNormalField):
-                self._field = PointXYZRGBNormalField()
-                self._points = np.c_[self.points, np.tile(color, (len(self), 1)), self.normals]
+            self._field = DynamicField(self._field)
+            self._field.add_field("color", 3)
+            self._points = np.c_[self._points, np.tile(color, (len(self), 1))]
