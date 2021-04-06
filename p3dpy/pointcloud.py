@@ -99,6 +99,20 @@ class PointCloud(object):
     def finalize(self):
         self._points = np.array(self._points)
 
+    def mean(self) -> np.ndarray:
+        if isinstance(self._points, list):
+            self._points = np.array(self._points)
+        return self._points.mean(axis=0)
+
+    def min_point(self) -> np.ndarray:
+        return self.points.min(axis=0)
+
+    def max_point(self) -> np.ndarray:
+        return self.points.max(axis=0)
+
+    def bounding_box(self) -> (np.ndarray, np.ndarray):
+        return self.min_point(), self.max_point()
+
     @property
     def points(self):
         if isinstance(self._points, list):
