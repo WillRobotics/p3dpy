@@ -42,7 +42,7 @@ result_pts = np.r_[np.c_[plane_pts, np.tile([0.0, 0.0, 1.0], (len(plane_pts), 1)
                    np.c_[not_plane_pts[mask_1], np.tile([1.0, 0.0, 1.0], (len(not_plane_pts[mask_1]), 1))]]
 
 # Draw results
-result_pc = pp.PointCloud(result_pts, pp.pointcloud.PointXYZRGBAField())
+result_pc = pp.PointCloud(result_pts, pp.pointcloud.PointXYZRGBField())
 client = pp.VizClient()
 res = client.post_pointcloud(result_pc, 'test')
 print(res)

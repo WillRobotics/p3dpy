@@ -52,7 +52,7 @@ def voxel_grid_filter(pc: pointcloud.PointCloud, voxel_size: float):
 
     min_bound = pc.points.min(axis=0) - voxel_size * 0.5
     voxel_dic = defaultdict(SumPoints)
-    for p in pc.points:
-        coord = tuple(np.floor((p - min_bound) / voxel_size).astype(np.int32).tolist())
+    for p in pc._points:
+        coord = tuple(np.floor((p[pc._field.slices["point"]] - min_bound) / voxel_size).astype(np.int32).tolist())
         voxel_dic[coord].add_point(p)
     return pointcloud.PointCloud([v.get_mean() for v in voxel_dic.values()], pc._field)

@@ -37,6 +37,7 @@ class RGBDImage(object):
         row, col = np.indices(self._depth_img.shape)
         pc._points[:, :, field.X] = (col - intrinsic[0, 2]) * self._depth_img / intrinsic[0, 0]
         pc._points[:, :, field.Y] = (row - intrinsic[1, 2]) * self._depth_img / intrinsic[1, 1]
+        pc._points[:, :, field.slices["color"]] = self._color_img
         pc._points = pc._points.reshape((-1, 6))
         pc._points = pc._points[np.isfinite(pc._points).all(axis=1), :]
         pc.transform_(extrinsic)

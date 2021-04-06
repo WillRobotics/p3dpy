@@ -31,6 +31,8 @@ def get_intrinsic_matrix(frame):
 
 if __name__ == "__main__":
 
+    pp.vizspawn(host=args.host)
+
     # Create a pipeline
     pipeline = rs.pipeline()
 
@@ -89,6 +91,7 @@ if __name__ == "__main__":
             rgbd_image = pp.RGBDImage(depth_image, color_image)
             pcd = rgbd_image.pointcloud(intrinsic)
             pcd.transform_(flip_transform)
+            pcd = pp.filter.voxel_grid_filter(pcd, 0.01)
             res = client.post_pointcloud(pcd, 'test')
             print(res)
 
