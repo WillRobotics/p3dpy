@@ -3,9 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>p3dpy viz</title>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
     <canvas id="myCanvas"></canvas>
+    <div id="info">
+      <h1>Demo for <a href="https://github.com/WillRobotics/p3dpy" >p3dpy</a></h1>
+      <p>You can drag the viewer, zoom in and out with scroll.</p>
+    </div>
     <script src="/static/js/three.js"></script>
     <script src="/static/js/OrbitControls.js"></script>
     <script type="module">
@@ -17,16 +22,22 @@
 
       let guiCtrl = function(){
         this.background = "#000000";
-        this.message = "";
       };
 
       let gui = new GUI();
       let guiObj = new guiCtrl();
       gui.addColor( guiObj , 'background' ).onChange(setBackgroundColor);
-      gui.add( guiObj, 'message' );
 
       let stats = new Stats();
       stats.showPanel(0);
+      Object.assign(stats.dom.style, {
+        'position': 'fixed',
+        'height': 'max-content',
+        'left': 'auto',
+        'right': 0,
+        'top': 'auto',
+        'bottom': '0'
+      });
       document.body.appendChild( stats.dom );
 
       init();
