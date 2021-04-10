@@ -82,7 +82,7 @@ class DynamicField(FieldBase):
         self.slices.update({name: slice(size, size + n_elem)})
 
     def size(self) -> int:
-        return max([s.stop() for s in self.slices.values()])
+        return max([s.stop for s in self.slices.values()])
 
 
 class PointCloud(object):
