@@ -18,15 +18,18 @@
       import { GUI } from '/static/js/dat.gui.module.js';
       let camera, scene, renderer, controls;
       let pointcloud, geometry, positions, colors;
+      let dataList = [];
       const MAX_POINTS = 500000;
 
       let guiCtrl = function(){
         this.background = "#000000";
+        this.dataName = "";
       };
 
       let gui = new GUI();
       let guiObj = new guiCtrl();
       gui.addColor( guiObj , 'background' ).onChange(setBackgroundColor);
+      gui.add( guiObj, 'dataName', dataList );
 
       let stats = new Stats();
       stats.showPanel(0);
@@ -47,26 +50,19 @@
       let scheme = window.location.protocol === "https:" ? 'wss://' : 'ws://';
       let webSocketUri = scheme + url.host + '/ws';
       let ws = new WebSocket(webSocketUri);
-      ws.onmessage = function(msg) {
-        let pc = JSON.parse(msg.data);
-        let points = pc['test'];
-        for (let i = 0; i < points[0].length; i+=1) {
-          pointcloud.geometry.attributes.position.array[3 * i] = points[0][i][0] * 1.0e3;
-          pointcloud.geometry.attributes.position.array[3 * i + 1] = points[0][i][1] * 1.0e3;
-          pointcloud.geometry.attributes.position.array[3 * i + 2] = points[0][i][2] * 1.0e3;
-        }
-        pointcloud.geometry.attributes.position.needsUpdate = true;
-        for (let i = 0; i < points[1].length; i+=1) {
-          pointcloud.geometry.attributes.color.array[3 * i] = points[1][i][0];
-          pointcloud.geometry.attributes.color.array[3 * i + 1] = points[1][i][1];
-          pointcloud.geometry.attributes.color.array[3 * i + 2] = points[1][i][2];
-        }
-        pointcloud.geometry.attributes.color.needsUpdate = true;
-      };
-      function wsSend () {
-        ws.send("test");
-      }
+      ws.onmessage = function(msg) { recievePointCloudMessage(guiObj.dataName, msg); }
+      let wsSend = function() { ws.send(guiObj.dataName); };
       setInterval(wsSend, 1000);
+
+      let infoWebSocketUri = scheme + url.host + '/info';
+      let infoWs = new WebSocket(infoWebSocketUri);
+      infoWs.onmessage = function(msg) {
+        let info = JSON.parse(msg.data);
+        if (JSON.stringify(dataList) != JSON.stringify(info["keys"])) {
+          dataList = info["keys"];
+          updateDataList(dataList);
+        }
+      };
 
       function init() {
         camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 2000 );
@@ -114,6 +110,28 @@
 
       function setBackgroundColor(){
         scene.background = new THREE.Color( guiObj.background );
+      }
+
+      function recievePointCloudMessage(dataName, msg) {
+        let pc = JSON.parse(msg.data);
+        let points = pc[dataName];
+        for (let i = 0; i < points[0].length; i+=1) {
+          pointcloud.geometry.attributes.position.array[3 * i] = points[0][i][0] * 1.0e3;
+          pointcloud.geometry.attributes.position.array[3 * i + 1] = points[0][i][1] * 1.0e3;
+          pointcloud.geometry.attributes.position.array[3 * i + 2] = points[0][i][2] * 1.0e3;
+        }
+        pointcloud.geometry.attributes.position.needsUpdate = true;
+        for (let i = 0; i < points[1].length; i+=1) {
+          pointcloud.geometry.attributes.color.array[3 * i] = points[1][i][0];
+          pointcloud.geometry.attributes.color.array[3 * i + 1] = points[1][i][1];
+          pointcloud.geometry.attributes.color.array[3 * i + 2] = points[1][i][2];
+        }
+        pointcloud.geometry.attributes.color.needsUpdate = true;
+      }
+
+      function updateDataList(dataList) {
+        gui.__controllers[1].remove();
+        gui.add( guiObj, 'dataName', dataList );
       }
     </script>
 </body>

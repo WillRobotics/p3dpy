@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 from typing import List
+import asyncio
 from fastapi import FastAPI, Request, WebSocket
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -20,7 +21,7 @@ class PointCloudData(BaseModel):
 
 
 app = FastAPI()
-stored_data = {"test": [[[1.0, 1.0, 1.0], [2.0, 2.0, 2.0], [3.0, 3.0, 3.0]], [[255, 0, 0], [255, 0, 0], [255, 0, 0]]]}
+stored_data = {"pointcloud": {}, "log": ""}
 
 app.mount(
     "/static",
@@ -40,26 +41,43 @@ async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
     while True:
         data = await ws.receive_text()
-        if data in stored_data:
-            await ws.send_json({data: stored_data[data]})
+        if data in stored_data["pointcloud"]:
+            await ws.send_json({data: stored_data["pointcloud"][data]})
+
+
+@app.websocket("/info")
+async def info_endpoint(ws: WebSocket):
+    await ws.accept()
+    while True:
+        await ws.send_json({"keys": list(stored_data["pointcloud"].keys()), "log": stored_data["log"]})
+        stored_data["log"] = ""
+        await asyncio.sleep(1)
 
 
 @app.get("/pointcloud/{name}")
 async def get_data(name: str):
-    json_data = jsonable_encoder(stored_data[name])
+    json_data = jsonable_encoder(stored_data["pointcloud"][name])
     return JSONResponse(content=json_data)
 
 
 @app.post("/pointcloud/store")
 async def store_data(data: PointCloudData):
-    stored_data[data.name] = [data.points, data.colors]
+    stored_data["pointcloud"][data.name] = [data.points, data.colors]
     return {"res": "ok", "name": data.name}
 
 
 @app.put("/pointcloud/update/{name}")
 async def update_data(name: str, data: PointCloudData):
-    stored_data[data.name] = [data.points, data.colors]
+    stored_data["pointcloud"][data.name] = [data.points, data.colors]
     return {"res": "ok", "name": data.name}
+
+
+@app.post("/log/store")
+async def store_log(data: str):
+    if isinstance(data, str):
+        stored_data["log"] += data
+        return {"res": "ok"}
+    return {"res": "error"}
 
 
 def main():
