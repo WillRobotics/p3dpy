@@ -86,7 +86,21 @@ class DynamicField(FieldBase):
 
 
 class PointCloud(object):
+    """Point cloud class."""
+
     def __init__(self, points=[], field=PointXYZField()):
+        """Constructor
+
+        Parameters
+        ----------
+        points: list or np.ndarray
+            2D ndarray or list of 1D ndarray.
+            Each row represents one point of the point cloud.
+            Each column represents one scalar field associated to its corresponding point.
+
+        field: FieldBase
+            The field of data contained in each point.
+        """
         self._field = field
         self._points = points
 

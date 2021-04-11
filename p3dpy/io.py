@@ -47,6 +47,13 @@ def _parse_pcd_header(lines: list):
 
 
 def load_pcd(fd: Union[TextIO, str]) -> pointcloud.PointCloud:
+    """Load PCD file format
+
+    Parameters
+    ----------
+    fd: TextIO or str
+        Input file name or StringIO data type.
+    """
     if isinstance(fd, str):
         fd = open(fd, "rb")
     lines = []

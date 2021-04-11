@@ -38,6 +38,15 @@ def statistical_outlier_removal(
 
 
 def voxel_grid_filter(pc: pointcloud.PointCloud, voxel_size: float):
+    """Voxel grid filter
+
+    Parameters
+    ----------
+    pc: pointcloud.PointCloud
+        Input point cloud.
+    voxel_size: float
+        The length of one side of the voxel.
+    """
     class SumPoints:
         def __init__(self, dim: int = pc._points.shape[1]):
             self._num_points = 0
