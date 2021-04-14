@@ -1,19 +1,27 @@
+import os
 import asyncio
 from asyncio.subprocess import PIPE, STDOUT
+import signal
 import webbrowser
 
 
-_process = None
+class ServerProcess:
+    _process = None
+    def __del__(self):
+        if self._process is not None:
+            os.kill(self._process.pid, signal.SIGTERM)
+
+_sp = ServerProcess()
 
 
 async def _spawn_vizserver(host: str = "127.0.0.1", port: int = 8000, timeout: int = 3):
-    global _process
-    if _process is not None:
+    global _sp
+    if _sp._process is not None:
         raise RuntimeError("Already vizserver has been spawned.")
-    _process = await asyncio.create_subprocess_exec(*["vizserver", "--host", host, "--port", str(port)], stdout=PIPE, stderr=STDOUT)
+    _sp._process = await asyncio.create_subprocess_exec(*["vizserver", "--host", host, "--port", str(port)], stdout=PIPE, stderr=STDOUT)
     while True:
         try:
-            line = await asyncio.wait_for(_process.stdout.readline(), timeout)
+            line = await asyncio.wait_for(_sp._process.stdout.readline(), timeout)
         except asyncio.TimeoutError:
             break
         else:
@@ -25,12 +33,12 @@ async def _spawn_vizserver(host: str = "127.0.0.1", port: int = 8000, timeout: i
 
 
 async def _loop(timeout: int = 3):
-    global _process
-    if _process is None:
+    global _sp
+    if _sp._process is None:
         return
     while True:
         try:
-            line = await asyncio.wait_for(_process.stdout.readline(), timeout)
+            line = await asyncio.wait_for(_sp._process.stdout.readline(), timeout)
         except asyncio.TimeoutError:
             pass
         else:
