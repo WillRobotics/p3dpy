@@ -10,6 +10,17 @@ def calc_triangle_area(p0, p1, p2):
     return 0.5 * (p0[0] * (p1[1] - p2[1]) + p1[0] * (p2[1] - p0[1]) + p2[0] * (p0[1] - p1[1]))
 
 
+def calc_convexhull_area(points):
+    hull = ConvexHull(points[:, :2])
+    hull_points = points[hull.vertices, :2]
+    hull_points = np.r_[hull_points, [hull_points[0]]]
+    hull_mean = hull_points.mean(axis=0)
+    area = 0
+    for i in range(len(hull_points) - 1):
+        area += calc_triangle_area(hull_mean, hull_points[i], hull_points[i + 1])
+    return area
+
+
 pp.vizspawn()
 
 # Segment plane
@@ -31,13 +42,6 @@ pc.transform_(trans.T)
 # Divide a plane and objects
 plane_pts = pc.points[mask, :]
 not_plane_pts = pc.points[~mask, :]
-hull = ConvexHull(plane_pts[:, :2])
-hull_points = plane_pts[hull.vertices, :2]
-hull_points = np.r_[hull_points, [hull_points[0]]]
-hull_mean = hull_points.mean(axis=0)
-area = 0
-for i in range(len(hull_points) - 1):
-    area += calc_triangle_area(hull_mean, hull_points[i], hull_points[i + 1])
 
 # Cluster objects
 db = DBSCAN(eps=0.1).fit(not_plane_pts)
@@ -55,7 +59,12 @@ result_pts = np.r_[np.c_[plane_pts, np.tile([0.0, 0.0, 1.0], (len(plane_pts), 1)
 result_pc = pp.PointCloud(result_pts, pp.pointcloud.PointXYZRGBField())
 client = pp.VizClient()
 res = client.post_pointcloud(result_pc, 'test')
-client.add_log(f"Plane Area: {area}")
+plane_area = calc_convexhull_area(plane_pts[:, :2])
+obj0_area = calc_convexhull_area(not_plane_pts[mask_0, :2])
+obj1_area = calc_convexhull_area(not_plane_pts[mask_1, :2])
+client.add_log(f"Plane Area: {plane_area}")
+client.add_log(f"Obj1 Area: {obj0_area}")
+client.add_log(f"Obj2 Area: {obj1_area}")
 print(res)
 
 pp.vizloop()
