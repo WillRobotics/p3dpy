@@ -2,12 +2,32 @@ import sys
 import pyrealsense2 as rs
 import numpy as np
 from enum import IntEnum
+from scipy.spatial import ConvexHull
+from sklearn.cluster import DBSCAN
+import transforms3d as t3d
 
 import p3dpy as pp
 
-import matplotlib.pylab as plt
-import matplotlib.animation as animation
-from mpl_toolkits.mplot3d import Axes3D
+import argparse
+parser = argparse.ArgumentParser(description='Visualization client example.')
+parser.add_argument('--host', type=str, default='localhost', help="Host address.")
+args = parser.parse_args()
+
+colors = [[0.0, 1.0, 0.0], [1.0, 0.0, 0.0], [1.0, 1.0, 0.0], [1.0, 0.0, 1.0], [0.5, 0.5, 1.0]]
+
+def calc_triangle_area(p0, p1, p2):
+    return 0.5 * (p0[0] * (p1[1] - p2[1]) + p1[0] * (p2[1] - p0[1]) + p2[0] * (p0[1] - p1[1]))
+
+
+def calc_convexhull_area(points):
+    hull = ConvexHull(points[:, :2])
+    hull_points = points[hull.vertices, :2]
+    hull_points = np.r_[hull_points, [hull_points[0]]]
+    hull_mean = hull_points.mean(axis=0)
+    area = 0
+    for i in range(len(hull_points) - 1):
+        area += calc_triangle_area(hull_mean, hull_points[i], hull_points[i + 1])
+    return area
 
 
 class Preset(IntEnum):
@@ -30,6 +50,8 @@ def get_intrinsic_matrix(frame):
 
 
 if __name__ == "__main__":
+
+    pp.vizspawn(host=args.host)
 
     # Create a pipeline
     pipeline = rs.pipeline()
@@ -65,22 +87,10 @@ if __name__ == "__main__":
 
     pcd = pp.PointCloud()
     flip_transform = np.array([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]])
-
-    fig = plt.figure()
-    ax1 = fig.add_subplot(1, 2, 1, projection='3d')
-    ax2 = fig.add_subplot(2, 2, 2)
-    ax3 = fig.add_subplot(2, 2, 4)
-    dummy_points = np.zeros((1, 3))
-    pos = ax1.plot(*list(zip(*dummy_points)), 'o', markersize=0.5)[0]
-    ax1.invert_yaxis()
-    ax1.set_xlim(-3, 3)
-    ax1.set_ylim(-3, 3)
-    ax1.set_zlim(-1, 6)
-    depth_im = ax2.imshow(np.zeros((480, 640), dtype=np.uint8), cmap="gray", vmin=0, vmax=255)
-    color_im = ax3.imshow(np.zeros((480, 640, 3), dtype=np.uint8))
+    client = pp.VizClient(host=args.host)
 
     try:
-        def update(frame):
+        while True:
             # Get frameset of color and depth
             frames = pipeline.wait_for_frames()
 
@@ -94,23 +104,47 @@ if __name__ == "__main__":
 
             # Validate that both frames are valid
             if not aligned_depth_frame or not color_frame:
-                return
+                continue
 
             depth_image = np.array(aligned_depth_frame.get_data())
             color_image = np.asarray(color_frame.get_data())
             rgbd_image = pp.RGBDImage(depth_image, color_image)
             pcd = rgbd_image.pointcloud(intrinsic)
             pcd.transform_(flip_transform)
-            pos.set_data(pcd.points[:, 0], pcd.points[:, 1])
-            pos.set_3d_properties(pcd.points[:, 2])
-            depth_offset = rgbd_image.depth.min()
-            depth_scale = rgbd_image.depth.max() - depth_offset
-            depth_temp = np.clip((rgbd_image.depth - depth_offset) / depth_scale, 0.0, 1.0)
-            depth_im.set_array((255.0 * depth_temp).astype(np.uint8))
-            color_im.set_array((255.0 * rgbd_image.color).astype(np.uint8))
+            pcd = pp.filter.voxel_grid_filter(pcd, 0.01)
+            plane, mask = pp.segmentation.segmentation_plane(pcd, dist_thresh=0.03)
+            axis = np.array([-plane[1], plane[0], 0.0])
+            axis /= np.linalg.norm(axis)
+            angle = np.arccos(plane[2] / np.linalg.norm(plane[:3]))
+            trans = np.identity(4)
+            trans[:3, :3] = t3d.axangles.axangle2mat(axis, angle)
+            pcd.transform_(trans.T)
 
-        anim = animation.FuncAnimation(fig, update, interval=10)
-        plt.show()
+            # Divide a plane and objects
+            plane_pts = pcd._points[mask, :]
+            not_plane_pts = pcd._points[~mask, :]
+            # Cluster objects
+            db = DBSCAN(eps=0.1).fit(not_plane_pts[:, :3])
+            labels = db.labels_
+            n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+            print("Number of class:", n_clusters)
+            masks = [labels == i for i in range(n_clusters)]
+
+            plane_pts[:, 3:] = [0.0, 0.0, 1.0]
+            for i in range(n_clusters):
+                not_plane_pts[masks[i], 3:] = colors[i % len(colors)]
+            result_pts = np.vstack([plane_pts, not_plane_pts])
+
+            # Draw results
+            result_pc = pp.PointCloud(result_pts, pp.pointcloud.PointXYZRGBField())
+            res = client.post_pointcloud(result_pc, 'test')
+            plane_area = calc_convexhull_area(plane_pts[:, :2])
+            client.clear_log()
+            client.add_log(f"Plane Area: {plane_area}")
+            for i in range(n_clusters):
+                obj_area = calc_convexhull_area(not_plane_pts[masks[i], :2])
+                client.add_log(f"Obj{i} Area: {obj_area}")
+            print(res)
 
     finally:
         pipeline.stop()
