@@ -12,7 +12,7 @@ Numpy based simple pointcloud tools.
 ## Installation
 
 ```
-pip install git+https://github.com/WillRobotics/p3dpy
+pip install p3dpy
 ```
 
 ## Visualization
