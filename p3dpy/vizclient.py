@@ -41,7 +41,7 @@ class VizClient(object):
     def add_log(self, message: str):
         response = requests.post(
             urllib.parse.urljoin(self._url, "log/store"),
-            json={"log": message},
+            json={"log": "<p>" + message + "</p>"},
         )
         return response.json()
 
