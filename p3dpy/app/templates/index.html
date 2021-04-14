@@ -8,8 +8,9 @@
 <body>
     <canvas id="myCanvas"></canvas>
     <div id="info">
-      <h1>Demo for <a href="https://github.com/WillRobotics/p3dpy" >p3dpy</a></h1>
-      <p>You can drag the viewer, zoom in and out with scroll.</p>
+      <h1>Visualizer for <a href="https://github.com/WillRobotics/p3dpy" >p3dpy</a></h1>
+      <h2>Information</h2>
+      <div id="info-message"></div>
     </div>
     <script src="/static/js/three.js"></script>
     <script src="/static/js/OrbitControls.js"></script>
@@ -61,6 +62,14 @@
         if (JSON.stringify(dataList) != JSON.stringify(info["keys"])) {
           dataList = info["keys"];
           updateDataList(dataList);
+        }
+        if (info["clearLog"]) {
+          const infoMessage = document.getElementById('info-message');
+          infoMessage.innerHTML += "";
+        }
+        if (info["log"].length > 0) {
+          const infoMessage = document.getElementById('info-message');
+          infoMessage.innerHTML += "<p>" + info["log"] + "</p>";
         }
       };
 

@@ -2,7 +2,7 @@
 import os
 from typing import List
 import asyncio
-from fastapi import FastAPI, Request, WebSocket
+from fastapi import Body, FastAPI, Request, WebSocket
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.encoders import jsonable_encoder
@@ -21,7 +21,7 @@ class PointCloudData(BaseModel):
 
 
 app = FastAPI()
-stored_data = {"pointcloud": {}, "log": ""}
+stored_data = {"pointcloud": {}, "log": "", "clearLog": False}
 
 app.mount(
     "/static",
@@ -49,8 +49,12 @@ async def websocket_endpoint(ws: WebSocket):
 async def info_endpoint(ws: WebSocket):
     await ws.accept()
     while True:
-        await ws.send_json({"keys": list(stored_data["pointcloud"].keys()), "log": stored_data["log"]})
+        await ws.send_json(
+            {"keys": list(stored_data["pointcloud"].keys()),
+             "log": stored_data["log"],
+             "clearLog": stored_data["clearLog"]})
         stored_data["log"] = ""
+        stored_data["clearLog"] = False
         await asyncio.sleep(1)
 
 
@@ -73,11 +77,17 @@ async def update_data(name: str, data: PointCloudData):
 
 
 @app.post("/log/store")
-async def store_log(data: str):
-    if isinstance(data, str):
-        stored_data["log"] += data
+async def store_log(body: dict = Body(...)):
+    if isinstance(body["log"], str):
+        stored_data["log"] += body["log"]
         return {"res": "ok"}
     return {"res": "error"}
+
+
+@app.get("/log/clear")
+async def clear_log():
+    stored_data["clearLog"] = True
+    return {"res": "ok"}
 
 
 def main():
