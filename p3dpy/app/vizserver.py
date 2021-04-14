@@ -39,23 +39,29 @@ async def get_webpage(request: Request):
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
-    while True:
-        data = await ws.receive_text()
-        if data in stored_data["pointcloud"]:
-            await ws.send_json({data: stored_data["pointcloud"][data]})
+    try:
+        while True:
+            data = await ws.receive_text()
+            if data in stored_data["pointcloud"]:
+                await ws.send_json({data: stored_data["pointcloud"][data]})
+    except:
+        await ws.close()
 
 
 @app.websocket("/info")
 async def info_endpoint(ws: WebSocket):
     await ws.accept()
-    while True:
-        await ws.send_json(
-            {"keys": list(stored_data["pointcloud"].keys()),
-             "log": stored_data["log"],
-             "clearLog": stored_data["clearLog"]})
-        stored_data["log"] = ""
-        stored_data["clearLog"] = False
-        await asyncio.sleep(1)
+    try:
+        while True:
+            await ws.send_json(
+                {"keys": list(stored_data["pointcloud"].keys()),
+                 "log": stored_data["log"],
+                 "clearLog": stored_data["clearLog"]})
+            stored_data["log"] = ""
+            stored_data["clearLog"] = False
+            await asyncio.sleep(1)
+    except:
+        await ws.close()
 
 
 @app.get("/pointcloud/{name}")
