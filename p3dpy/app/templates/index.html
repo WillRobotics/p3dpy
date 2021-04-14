@@ -80,12 +80,13 @@
         scene = new THREE.Scene();
 
         geometry = new THREE.Geometry();
-        const material = new THREE.PointsMaterial({size: 1.0, opacity: 1, vertexColors: THREE.VertexColors});
+        const material = new THREE.PointsMaterial({size: 3.0, opacity: 1, vertexColors: THREE.VertexColors});
         geometry = new THREE.BufferGeometry();
         positions = new Float32Array( MAX_POINTS * 3 );
         geometry.setAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
         colors = new Uint8Array( MAX_POINTS * 3 );
-        geometry.setAttribute( 'color', new THREE.BufferAttribute( colors, 3, true) );
+        geometry.setAttribute( 'color', new THREE.BufferAttribute( colors, 3, true ) );
+        geometry.setDrawRange( 0, 0 );
         pointcloud = new THREE.Points(geometry, material);
         pointcloud.traverse( function( object ) { object.frustumCulled = false; } );
         scene.add(pointcloud);
@@ -129,6 +130,7 @@
           pointcloud.geometry.attributes.position.array[3 * i + 1] = points[0][i][1] * 1.0e3;
           pointcloud.geometry.attributes.position.array[3 * i + 2] = points[0][i][2] * 1.0e3;
         }
+        pointcloud.geometry.setDrawRange( 0, points[0].length );
         pointcloud.geometry.attributes.position.needsUpdate = true;
         for (let i = 0; i < points[1].length; i+=1) {
           pointcloud.geometry.attributes.color.array[3 * i] = points[1][i][0];
