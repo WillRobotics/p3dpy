@@ -31,8 +31,7 @@ class RGBDImage(object):
 
     def pointcloud(self, intrinsic: np.ndarray, extrinsic: np.ndarray = np.identity(4)) -> pointcloud.PointCloud:
         field = pointcloud.PointXYZRGBField()
-        pc = pointcloud.PointCloud()
-        pc._points = np.zeros(list(self._depth_img.shape) + [field.size()])
+        pc = pointcloud.PointCloud(np.zeros(list(self._depth_img.shape) + [field.size()]), field)
         pc._points[:, :, field.Z] = self._depth_img
         row, col = np.indices(self._depth_img.shape)
         pc._points[:, :, field.X] = (col - intrinsic[0, 2]) * self._depth_img / intrinsic[0, 0]
