@@ -53,7 +53,7 @@
       let ws = new WebSocket(webSocketUri);
       ws.onmessage = function(msg) { recievePointCloudMessage(guiObj.dataName, msg); }
       let wsSend = function() { ws.send(guiObj.dataName); };
-      setInterval(wsSend, 500);
+      setInterval(wsSend, 100);
 
       let infoWebSocketUri = scheme + url.host + '/info';
       let infoWs = new WebSocket(infoWebSocketUri);
