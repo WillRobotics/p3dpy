@@ -23,7 +23,7 @@
       let pointcloud, geometry, positions, colors;
       let dataName = "";
       let dataList = [];
-      const MAX_POINTS = 500000;
+      const MAX_POINTS = {{ parameters.max_points }};
 
       let guiCtrl = function(){
         this.background = "#000000";

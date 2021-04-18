@@ -22,6 +22,7 @@ class PointCloudData(BaseModel):
 
 app = FastAPI()
 stored_data = {"pointcloud": {}, "log": "", "clearLog": False}
+parameters = {"max_points": 500000}
 
 app.mount(
     "/static",
@@ -33,7 +34,7 @@ templates = Jinja2Templates(directory=os.path.join(os.path.dirname(p3dpy.__file_
 
 @app.get("/", response_class=HTMLResponse)
 async def get_webpage(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse("index.html", context={"request": request, "parameters": parameters})
 
 
 @app.websocket("/ws")
