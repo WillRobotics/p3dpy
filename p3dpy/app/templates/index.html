@@ -9,7 +9,9 @@
     <canvas id="myCanvas"></canvas>
     <div id="info">
       <h1>Visualizer for <a href="https://github.com/WillRobotics/p3dpy" >p3dpy</a></h1>
-      <h2>Information</h2>
+      <h1>Select data</h1>
+      <select name="data-names" id="data-names"></select>
+      <h1>Information</h1>
       <div id="info-message"></div>
     </div>
     <script src="/static/js/three.js"></script>
@@ -19,18 +21,17 @@
       import { GUI } from '/static/js/dat.gui.module.js';
       let camera, scene, renderer, controls;
       let pointcloud, geometry, positions, colors;
+      let dataName = "";
       let dataList = [];
       const MAX_POINTS = 500000;
 
       let guiCtrl = function(){
         this.background = "#000000";
-        this.dataName = "";
       };
 
       let gui = new GUI();
       let guiObj = new guiCtrl();
       gui.addColor( guiObj , 'background' ).onChange(setBackgroundColor);
-      gui.add( guiObj, 'dataName', dataList );
 
       let stats = new Stats();
       stats.showPanel(0);
@@ -51,9 +52,12 @@
       let scheme = window.location.protocol === "https:" ? 'wss://' : 'ws://';
       let webSocketUri = scheme + url.host + '/ws';
       let ws = new WebSocket(webSocketUri);
-      ws.onmessage = function(msg) { recievePointCloudMessage(guiObj.dataName, msg); }
-      let wsSend = function() { ws.send(guiObj.dataName); };
+      ws.onmessage = function(msg) { recievePointCloudMessage(dataName, msg); }
+      let wsSend = function() { ws.send(dataName); };
       setInterval(wsSend, 100);
+
+      let dataNames = document.getElementById('data-names');
+      dataNames.addEventListener('change', dataNamesChange);
 
       let infoWebSocketUri = scheme + url.host + '/info';
       let infoWs = new WebSocket(infoWebSocketUri);
@@ -140,9 +144,25 @@
         pointcloud.geometry.attributes.color.needsUpdate = true;
       }
 
+      function dataNamesChange(event){
+        dataName = event.currentTarget.value;
+      }
+
       function updateDataList(dataList) {
-        gui.__controllers[1].remove();
-        gui.add( guiObj, 'dataName', dataList );
+        let select = document.getElementById('data-names');
+        select.innerHTML = "";
+        if (dataList.length == 1) {
+          dataName = dataList[0];
+        }
+        for(let i = 0; i < dataList.length; i++) {
+          let option = document.createElement('option');
+          option.setAttribute('value', dataList[i]);
+          option.innerHTML = dataList[i];
+          if (dataName == dataList[i]) {
+            option.defaultSelected = true;
+          }
+          select.appendChild(option);
+        };
       }
     </script>
 </body>

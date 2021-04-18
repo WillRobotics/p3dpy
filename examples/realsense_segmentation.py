@@ -140,10 +140,10 @@ if __name__ == "__main__":
             res = client.post_pointcloud(result_pc, 'test')
             plane_area = calc_convexhull_area(plane_pts[:, :2])
             client.clear_log()
-            client.add_log(f"Plane Area: {plane_area}")
+            client.add_log(f"Plane Area: {plane_area:.3f}")
             for i in range(n_clusters):
                 obj_area = calc_convexhull_area(not_plane_pts[masks[i], :2])
-                client.add_log(f"Obj{i} Area: {obj_area}")
+                client.add_log(f"Obj{i} Area: {obj_area:.3f}")
             print(res)
 
     finally:

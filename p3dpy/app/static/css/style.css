@@ -1,7 +1,7 @@
 *{
     box-sizing: border-box;
     font-family: 'Roboto Slab', sans-serif;
-    font-size: 13px;
+    font-size: 18px;
     font-weight: 100;
     margin: 0;
 }
@@ -11,7 +11,7 @@ body {
     line-height: 1.4em;
     overflow: hidden;
     font-family: 'Roboto Slab', sans-serif;
-    font-size: 13px;
+    font-size: 18px;
     font-weight: 100;
 }
 #info{
