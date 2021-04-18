@@ -27,11 +27,17 @@
 
       let guiCtrl = function(){
         this.background = "#000000";
+        {% for key, value in parameters.gui_params.items() %}
+        this.{{ key|e }} = {{ value[0]|e }};
+        {% endfor %}
       };
 
       let gui = new GUI();
       let guiObj = new guiCtrl();
       gui.addColor( guiObj , 'background' ).onChange(setBackgroundColor);
+      {% for key, value in parameters.gui_params.items() %}
+      gui.add( guiObj, '{{ key|e }}', {{ value[1]|e }}, {{ value[2]|e }}, {{ value[3]|e }}).onChange(setParameters);
+      {% endfor %}
 
       let stats = new Stats();
       stats.showPanel(0);
@@ -122,8 +128,19 @@
         stats.end();
       }
 
-      function setBackgroundColor(){
+      function setBackgroundColor() {
         scene.background = new THREE.Color( guiObj.background );
+      }
+
+      function setParameters() {
+        const param  = {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json; charset=utf-8"
+          },
+          body: JSON.stringify(guiObj)
+        };
+        fetch("./parameters/store", param);
       }
 
       function recievePointCloudMessage(dataName, msg) {

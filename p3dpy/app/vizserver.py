@@ -22,7 +22,7 @@ class PointCloudData(BaseModel):
 
 app = FastAPI()
 stored_data = {"pointcloud": {}, "log": "", "clearLog": False}
-parameters = {"max_points": 500000}
+parameters = {"max_points": 500000, "gui_params": {}}
 
 app.mount(
     "/static",
@@ -97,14 +97,32 @@ async def clear_log():
     return {"res": "ok"}
 
 
+@app.post("/parameters/store")
+async def post_parameters(body: dict = Body(...)):
+    for k, v in body.items():
+        if k in parameters["gui_params"]:
+            parameters["gui_params"][k][0] = v
+    return {"res": "ok"}
+
+
+@app.get("/parameters")
+async def get_parameters():
+    data = dict([(k, v[0]) for k, v in parameters["gui_params"].items()])
+    json_data = jsonable_encoder(data)
+    return JSONResponse(content=json_data)
+
+
 def main():
     import uvicorn
     import argparse
+    import json
 
     parser = argparse.ArgumentParser(description="Visualization server for p3dpy.")
     parser.add_argument("--host", type=str, default="127.0.0.1", help="Host address.")
     parser.add_argument("--port", type=int, default=8000, help="Port number.")
+    parser.add_argument("--params", type=str, default="{}", help="Parameters on JSON format.")
     args = parser.parse_args()
+    parameters["gui_params"] = json.loads(args.params)
     uvicorn.run(app=app, host=args.host, port=args.port)
 
 

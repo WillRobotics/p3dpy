@@ -51,7 +51,8 @@ def get_intrinsic_matrix(frame):
 
 if __name__ == "__main__":
 
-    pp.vizspawn(host=args.host)
+    params = {"dist_thresh": (0.03, 0.0, 0.1), "voxel_size": (0.01, 0.0, 0.1)}
+    pp.vizspawn(host=args.host, params=params)
 
     # Create a pipeline
     pipeline = rs.pipeline()
@@ -91,6 +92,8 @@ if __name__ == "__main__":
 
     try:
         while True:
+            cur_params = client.get_parameters()
+
             # Get frameset of color and depth
             frames = pipeline.wait_for_frames()
 
@@ -111,8 +114,8 @@ if __name__ == "__main__":
             rgbd_image = pp.RGBDImage(depth_image, color_image)
             pcd = rgbd_image.pointcloud(intrinsic)
             pcd.transform_(flip_transform)
-            pcd = pp.filter.voxel_grid_filter(pcd, 0.01)
-            plane, mask = pp.segmentation.segmentation_plane(pcd, dist_thresh=0.03)
+            pcd = pp.filter.voxel_grid_filter(pcd, cur_params["voxel_size"])
+            plane, mask = pp.segmentation.segmentation_plane(pcd, dist_thresh=cur_params["dist_thresh"])
             axis = np.array([-plane[1], plane[0], 0.0])
             axis /= np.linalg.norm(axis)
             angle = np.arccos(plane[2] / np.linalg.norm(plane[:3]))

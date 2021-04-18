@@ -50,3 +50,9 @@ class VizClient(object):
             urllib.parse.urljoin(self._url, "log/clear"),
         )
         return response.json()
+
+    def get_parameters(self):
+        response = requests.get(
+            urllib.parse.urljoin(self._url, "parameters"),
+        )
+        return response.json()
