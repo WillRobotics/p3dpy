@@ -1,5 +1,5 @@
 include README.md
-recursive-include p3dpy/app/static/*
-recursive-include p3dpy/app/templates/*
-recursive-exclude * __pycache__
-recursive-exclude * *.py[co]
+recursive-include p3dpy/app/static *.js *.css
+recursive-include p3dpy/app/templates *.html
+recursive-exclude p3dpy __pycache__
+recursive-exclude p3dpy *.py[co]
