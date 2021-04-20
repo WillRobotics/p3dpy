@@ -60,5 +60,8 @@ def segmentation_plane(
             best_plane = plane
 
     _, mask, _ = _evaluate_ransac(pc, best_plane, dist_thresh)
-    best_plane = _compute_plane(pc, mask)
+    try:
+        best_plane = _compute_plane(pc, mask)
+    except ValueError:
+        pass
     return best_plane, mask
