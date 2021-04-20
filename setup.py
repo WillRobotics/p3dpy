@@ -11,7 +11,7 @@ setup(
     description='Simple pointcloud toolkit and browser based viewer',
     license='MIT',
     keywords='pointcloud',
-    url='http://github.com/neka-nat/kinpy',
+    url='http://github.com/neka-nat/p3dpy',
     packages=['p3dpy'],
     package_data={'p3dpy': ['app/static/**/*', 'app/templates/*']},
     include_package_data = True,
