@@ -51,20 +51,23 @@ print("Number of class:", n_clusters)
 mask_0 = labels == 0
 mask_1 = labels == 1
 
-result_pts = np.r_[np.c_[plane_pts, np.tile([0.0, 0.0, 1.0], (len(plane_pts), 1))],
-                   np.c_[not_plane_pts[mask_0], np.tile([0.0, 1.0, 0.0], (len(not_plane_pts[mask_0]), 1))],
-                   np.c_[not_plane_pts[mask_1], np.tile([1.0, 0.0, 1.0], (len(not_plane_pts[mask_1]), 1))]]
-
 # Draw results
-result_pc = pp.PointCloud(result_pts, pp.pointcloud.PointXYZRGBField())
 client = pp.VizClient()
-res = client.post_pointcloud(result_pc, 'test')
+res1 = client.post_pointcloud(pp.PointCloud(np.c_[plane_pts, np.tile([0.0, 0.0, 1.0], (len(plane_pts), 1))],
+                                            pp.pointcloud.PointXYZRGBField()),
+                              'plane')
+res2 = client.post_pointcloud(pp.PointCloud(np.c_[not_plane_pts[mask_0], np.tile([0.0, 1.0, 0.0], (len(not_plane_pts[mask_0]), 1))],
+                                            pp.pointcloud.PointXYZRGBField()),
+                              'obj1')
+res3 = client.post_pointcloud(pp.PointCloud(np.c_[not_plane_pts[mask_1], np.tile([1.0, 0.0, 1.0], (len(not_plane_pts[mask_1]), 1))],
+                                            pp.pointcloud.PointXYZRGBField()),
+                              'obj2')
 plane_area = calc_convexhull_area(plane_pts[:, :2])
 obj0_area = calc_convexhull_area(not_plane_pts[mask_0, :2])
 obj1_area = calc_convexhull_area(not_plane_pts[mask_1, :2])
 client.add_log(f"Plane Area: {plane_area:.3f}")
 client.add_log(f"Obj1 Area: {obj0_area:.3f}")
 client.add_log(f"Obj2 Area: {obj1_area:.3f}")
-print(res)
+print(res1)
 
 pp.vizloop()
