@@ -42,9 +42,13 @@ async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
     try:
         while True:
-            data = await ws.receive_text()
-            if data in stored_data["pointcloud"]:
-                await ws.send_json({data: stored_data["pointcloud"][data]})
+            data = await ws.receive_json()
+            send_data = [[], []]
+            for d in data:
+                if d in stored_data["pointcloud"]:
+                    send_data[0].extend(stored_data["pointcloud"][d][0])
+                    send_data[1].extend(stored_data["pointcloud"][d][1])
+            await ws.send_json({"points": send_data})
     except:
         await ws.close()
 

@@ -86,7 +86,7 @@ def load_pcd(fd: Union[TextIO, str]) -> pointcloud.PointCloud:
     else:
         raise ValueError("Unsupport field type.")
 
-    pc = pointcloud.PointCloud(field=field)
+    pc = pointcloud.PointCloud(points=[], field=field)
     fmt = ""
     for i in range(len(config["FIELDS"])):
         fmt += config["COUNT"][i] if int(config["COUNT"][i]) > 1 else ""

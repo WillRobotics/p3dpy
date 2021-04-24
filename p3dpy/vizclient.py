@@ -13,7 +13,7 @@ class VizClient(object):
     def post_pointcloud(self, pointcloud: PointCloud, name: str = ""):
         points = pointcloud.points.tolist()
         colors = pointcloud.colors
-        colors = (colors * 255).astype(np.uint8).tolist() if colors is not None else []
+        colors = (colors * 255).astype(np.uint8).tolist() if colors is not None else (np.ones((len(pointcloud), 3), dtype=np.uint8) * 255).tolist()
         name = id(pointcloud) if name == "" else name
         response = requests.post(
             urllib.parse.urljoin(self._url, "pointcloud/store"),

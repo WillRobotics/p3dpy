@@ -10,7 +10,8 @@
     <div id="info">
       <h1>Visualizer for <a href="https://github.com/WillRobotics/p3dpy" >p3dpy</a></h1>
       <h1>Select data</h1>
-      <select name="data-names" id="data-names"></select>
+      <div id="data-names">
+      </div>
       <h1>Information</h1>
       <div id="info-message"></div>
     </div>
@@ -21,7 +22,7 @@
       import { GUI } from '/static/js/dat.gui.module.js';
       let camera, scene, renderer, controls;
       let pointcloud, geometry, positions, colors;
-      let dataName = "";
+      let dataName = [];
       let dataList = [];
       const MAX_POINTS = {{ parameters.max_points }};
 
@@ -58,12 +59,9 @@
       let scheme = window.location.protocol === "https:" ? 'wss://' : 'ws://';
       let webSocketUri = scheme + url.host + '/ws';
       let ws = new WebSocket(webSocketUri);
-      ws.onmessage = function(msg) { recievePointCloudMessage(dataName, msg); }
-      let wsSend = function() { ws.send(dataName); };
+      ws.onmessage = function(msg) { recievePointCloudMessage(msg); }
+      let wsSend = function() { ws.send(JSON.stringify(dataName)); };
       setInterval(wsSend, 100);
-
-      let dataNames = document.getElementById('data-names');
-      dataNames.addEventListener('change', dataNamesChange);
 
       let infoWebSocketUri = scheme + url.host + '/info';
       let infoWs = new WebSocket(infoWebSocketUri);
@@ -143,9 +141,9 @@
         fetch("./parameters/store", param);
       }
 
-      function recievePointCloudMessage(dataName, msg) {
+      function recievePointCloudMessage(msg) {
         let pc = JSON.parse(msg.data);
-        let points = pc[dataName];
+        let points = pc["points"];
         for (let i = 0; i < points[0].length; i+=1) {
           pointcloud.geometry.attributes.position.array[3 * i] = points[0][i][0] * 1.0e3;
           pointcloud.geometry.attributes.position.array[3 * i + 1] = points[0][i][1] * 1.0e3;
@@ -161,24 +159,33 @@
         pointcloud.geometry.attributes.color.needsUpdate = true;
       }
 
-      function dataNamesChange(event){
-        dataName = event.currentTarget.value;
+      function dataNamesChange(event) {
+        dataName = [];
+        let checkboxes = document.querySelectorAll("input[type='checkbox']");
+        for (let i = 0; i < checkboxes.length; i++) {
+          if (checkboxes[i].checked) {
+            dataName.push(checkboxes[i].name);
+          }
+        }
       }
 
       function updateDataList(dataList) {
-        let select = document.getElementById('data-names');
-        select.innerHTML = "";
+        let dataNames = document.getElementById("data-names");
         if (dataList.length == 1) {
-          dataName = dataList[0];
+          dataName = [dataList[0]];
         }
         for(let i = 0; i < dataList.length; i++) {
-          let option = document.createElement('option');
-          option.setAttribute('value', dataList[i]);
-          option.innerHTML = dataList[i];
-          if (dataName == dataList[i]) {
-            option.defaultSelected = true;
+          let label = document.createElement("label");
+          let check = document.createElement('input');
+          check.setAttribute('type', 'checkbox');
+          check.setAttribute('name', dataList[i]);
+          label.innerText = dataList[i];
+          if (dataName.includes(dataList[i])) {
+            check.setAttribute('checked', 'checked');
           }
-          select.appendChild(option);
+          check.addEventListener('change', dataNamesChange);
+          dataNames.appendChild(check);
+          dataNames.appendChild(label);
         };
       }
     </script>
