@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-__version__ = '0.3.0'
+__version__ = '0.5.0'
 
 
 setup(
@@ -12,7 +12,7 @@ setup(
     license='MIT',
     keywords='pointcloud',
     url='http://github.com/neka-nat/p3dpy',
-    packages=['p3dpy'],
+    packages=['p3dpy', 'p3dpy.app'],
     package_data={'p3dpy': ['app/static/**/*', 'app/templates/*']},
     include_package_data = True,
     long_description=open('README.md').read(),
