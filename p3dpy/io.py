@@ -1,6 +1,7 @@
 from typing import TextIO, Union
 import struct
 import numpy as np
+import stl
 import lzf
 from . import pointcloud
 
@@ -146,3 +147,8 @@ def load_pcd(fd: Union[TextIO, str]) -> pointcloud.PointCloud:
 
     pc.finalize()
     return pc
+
+
+def load_stl(fd: Union[TextIO, str], scale: float = 1.0) -> pointcloud.PointCloud:
+    mesh = stl.mesh.Mesh.from_file(fd)
+    return pointcloud.PointCloud(points=mesh.points.reshape((-1, 3)) * scale, field=pointcloud.PointXYZField())

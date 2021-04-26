@@ -11,7 +11,7 @@ pp.vizspawn(host=args.host)
 
 client = VizClient(host=args.host)
 pc1 = pp.io.load_pcd('data/bunny.pcd')
-pc2 = pp.io.load_pcd('data/bunny.pcd')
+pc2 = pp.io.load_stl('data/torus.STL')
 pc1.set_uniform_color([1.0, 0.0, 0.0])
 pc2.set_uniform_color([0.0, 1.0, 0.0])
 res1 = client.post_pointcloud(pc1, 'test1')
