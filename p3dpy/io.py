@@ -2,6 +2,7 @@ from typing import TextIO, Union
 import struct
 import numpy as np
 import stl
+from plyfile import PlyData
 import lzf
 from . import pointcloud
 
@@ -150,5 +151,15 @@ def load_pcd(fd: Union[TextIO, str]) -> pointcloud.PointCloud:
 
 
 def load_stl(fd: Union[TextIO, str], scale: float = 1.0) -> pointcloud.PointCloud:
-    mesh = stl.mesh.Mesh.from_file(fd)
+    if isinstance(fd, str):
+        fd = open(fd, "rb")
+    mesh = stl.mesh.Mesh.from_file("", fh=fd)
     return pointcloud.PointCloud(points=mesh.points.reshape((-1, 3)) * scale, field=pointcloud.PointXYZField())
+
+
+def load_ply(fd: Union[TextIO, str]) -> pointcloud.PointCloud:
+    if isinstance(fd, str):
+        fd = open(fd, "rb")
+    plydata = PlyData.read(fd)
+    points = plydata['vertex'][["x", "y", "z"]]
+    return pointcloud.PointCloud(points=points.view("<f4").reshape(points.shape + (-1,)), field=pointcloud.PointXYZField())
