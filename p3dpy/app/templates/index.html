@@ -171,20 +171,21 @@
 
       function updateDataList(dataList) {
         let dataNames = document.getElementById("data-names");
+        dataNames.innerHTML = "";
         if (dataList.length == 1) {
           dataName = [dataList[0]];
         }
         for(let i = 0; i < dataList.length; i++) {
-          let label = document.createElement("label");
           let check = document.createElement('input');
           check.setAttribute('type', 'checkbox');
           check.setAttribute('name', dataList[i]);
-          label.innerText = dataList[i];
           if (dataName.includes(dataList[i])) {
             check.setAttribute('checked', 'checked');
           }
           check.addEventListener('change', dataNamesChange);
-          dataNames.appendChild(check);
+          let label = document.createElement("label");
+          label.appendChild(check);
+          label.appendChild(document.createTextNode(dataList[i]));
           dataNames.appendChild(label);
         };
       }

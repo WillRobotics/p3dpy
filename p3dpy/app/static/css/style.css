@@ -14,6 +14,9 @@ body {
     font-size: 16px;
     font-weight: 100;
 }
+label {
+    display: block;
+}
 #info{
     position: absolute;
     left: 2em;
