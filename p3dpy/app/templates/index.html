@@ -21,7 +21,7 @@
       import Stats from '/static/js/stats.module.js';
       import { GUI } from '/static/js/dat.gui.module.js';
       let camera, scene, renderer, controls;
-      let pointcloud, geometry, positions, colors;
+      let pointcloud, geometry;
       let dataName = [];
       let dataList = [];
       const MAX_POINTS = {{ parameters.max_points }};
@@ -90,9 +90,9 @@
         geometry = new THREE.Geometry();
         const material = new THREE.PointsMaterial({size: 3.0, opacity: 1, vertexColors: THREE.VertexColors});
         geometry = new THREE.BufferGeometry();
-        positions = new Float32Array( MAX_POINTS * 3 );
+        let positions = new Float32Array( MAX_POINTS * 3 );
         geometry.setAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
-        colors = new Uint8Array( MAX_POINTS * 3 );
+        let colors = new Uint8Array( MAX_POINTS * 3 );
         geometry.setAttribute( 'color', new THREE.BufferAttribute( colors, 3, true ) );
         geometry.setDrawRange( 0, 0 );
         pointcloud = new THREE.Points(geometry, material);
