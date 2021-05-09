@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import os
+import base64
+import numpy as np
 from typing import List
 import asyncio
 from fastapi import Body, FastAPI, Request, WebSocket
@@ -16,8 +18,12 @@ import p3dpy
 
 class PointCloudData(BaseModel):
     name: str
-    points: List[List[float]]
-    colors: List[List[int]]
+    points: str
+    colors: str
+
+
+def _decode(s: str):
+    return base64.b64decode(s.encode())
 
 
 app = FastAPI()
@@ -46,8 +52,8 @@ async def websocket_endpoint(ws: WebSocket):
             send_data = [[], []]
             for d in data:
                 if d in stored_data["pointcloud"]:
-                    send_data[0].extend(stored_data["pointcloud"][d][0])
-                    send_data[1].extend(stored_data["pointcloud"][d][1])
+                    send_data[0].extend(stored_data["pointcloud"][d][0].tolist())
+                    send_data[1].extend(stored_data["pointcloud"][d][1].tolist())
             await ws.send_json({"points": send_data})
     except:
         await ws.close()
@@ -71,19 +77,28 @@ async def info_endpoint(ws: WebSocket):
 
 @app.get("/pointcloud/{name}")
 async def get_data(name: str):
-    json_data = jsonable_encoder(stored_data["pointcloud"][name])
+    points, colors = stored_data["pointcloud"][name]
+    json_data = jsonable_encoder([points.tolist(), colors.tolist()])
     return JSONResponse(content=json_data)
 
 
 @app.post("/pointcloud/store")
 async def store_data(data: PointCloudData):
-    stored_data["pointcloud"][data.name] = [data.points, data.colors]
+    points = np.frombuffer(_decode(data.points), dtype=np.float32)
+    points = points.reshape((-1, 3))
+    colors = np.frombuffer(_decode(data.colors), dtype=np.uint8)
+    colors = colors.reshape((-1, 3))
+    stored_data["pointcloud"][data.name] = [points, colors]
     return {"res": "ok", "name": data.name}
 
 
 @app.put("/pointcloud/update/{name}")
 async def update_data(name: str, data: PointCloudData):
-    stored_data["pointcloud"][data.name] = [data.points, data.colors]
+    points = np.frombuffer(_decode(data.points), dtype=np.float32)
+    points = points.reshape((-1, 3))
+    colors = np.frombuffer(_decode(data.colors), dtype=np.uint8)
+    colors = colors.reshape((-1, 3))
+    stored_data["pointcloud"][data.name] = [points, colors]
     return {"res": "ok", "name": data.name}
 
 

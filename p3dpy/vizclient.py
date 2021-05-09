@@ -1,3 +1,4 @@
+import base64
 import urllib.parse
 
 import numpy as np
@@ -10,24 +11,27 @@ class VizClient(object):
     def __init__(self, host: str = "localhost", port: int = 8000):
         self._url = "http://%s:%d" % (host, port)
 
+    def _encode(self, s: str):
+        return base64.b64encode(s).decode("utf-8")
+
     def post_pointcloud(self, pointcloud: PointCloud, name: str = ""):
-        points = pointcloud.points.tolist()
+        points = pointcloud.points.astype(np.float32).tobytes("C")
         colors = pointcloud.colors
-        colors = (colors * 255).astype(np.uint8).tolist() if colors is not None else (np.ones((len(pointcloud), 3), dtype=np.uint8) * 255).tolist()
+        colors = (colors * 255).astype(np.uint8).tobytes("C") if colors is not None else (np.ones((len(pointcloud), 3), dtype=np.uint8) * 255).tobytes("C")
         name = id(pointcloud) if name == "" else name
         response = requests.post(
             urllib.parse.urljoin(self._url, "pointcloud/store"),
-            json={"name": name, "points": points, "colors": colors},
+            json={"name": name, "points": self._encode(points), "colors": self._encode(colors)},
         )
         return response.json()
 
     def update_pointcloud(self, name: str, pointcloud: PointCloud):
-        points = pointcloud.points.tolist()
+        points = pointcloud.points.astype(np.float32).tobytes("C")
         colors = pointcloud.colors
-        colors = (colors * 255).astype(np.uint8).tolist() if colors is not None else []
+        colors = (colors * 255).astype(np.uint8).tobytes("C") if colors is not None else (np.ones((len(pointcloud), 3), dtype=np.uint8) * 255).tobytes("C")
         response = requests.put(
             urllib.parse.urljoin(self._url, f"pointcloud/update/{name}"),
-            json={"name": "", "points": points, "colors": colors},
+            json={"name": "", "points": self._encode(points), "colors": self._encode(colors)},
         )
         return response.json()
 
