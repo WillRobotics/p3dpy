@@ -21,13 +21,14 @@
       import Stats from '/static/js/stats.module.js';
       import { GUI } from '/static/js/dat.gui.module.js';
       let camera, scene, renderer, controls;
-      let pointcloud, geometry, grid;
+      let pointcloud, geometry, grid, bbox;
       let dataName = [];
       let dataList = [];
       const MAX_POINTS = {{ parameters.max_points }};
 
       let guiCtrl = function(){
         this.background = "#000000";
+        this.boundingbox = false;
         this.grid = true;
         {% for key, value in parameters.gui_params.items() %}
         this.{{ key|e }} = {{ value[0]|e }};
@@ -37,6 +38,7 @@
       let gui = new GUI();
       let guiObj = new guiCtrl();
       gui.addColor( guiObj , 'background' ).onChange(setBackgroundColor);
+      gui.add( guiObj, 'boundingbox').onChange(setBoundingBox);
       gui.add( guiObj, 'grid').onChange(setGrid);
       {% for key, value in parameters.gui_params.items() %}
       gui.add( guiObj, '{{ key|e }}', {{ value[1]|e }}, {{ value[2]|e }}, {{ value[3]|e }}).onChange(setParameters);
@@ -104,6 +106,12 @@
         grid = new THREE.GridHelper( 20, 20, 0x0000ff, 0x808080 );
         scene.add( grid );
 
+        const box = new THREE.Box3();
+        bbox = new THREE.Box3Helper( box, 0xffff00 );
+        bbox.box.set( [0.0, 0.0, 0.0], [0.0, 0.0, 0.0] );
+        bbox.material.visible = guiObj.boundingbox;
+        scene.add( bbox );
+
         renderer = new THREE.WebGLRenderer( { antialias: true, canvas: document.querySelector('#myCanvas')} );
         renderer.setPixelRatio( window.devicePixelRatio );
         renderer.setSize( window.innerWidth, window.innerHeight );
@@ -135,6 +143,10 @@
         scene.background = new THREE.Color( guiObj.background );
       }
 
+      function setBoundingBox() {
+        bbox.material.visible = guiObj.boundingbox;
+      }
+
       function setGrid() {
         grid.material.visible = guiObj.grid;
       }
@@ -159,6 +171,7 @@
           pointcloud.geometry.attributes.position.array[3 * i + 2] = points[0][i][2];
         }
         pointcloud.geometry.setDrawRange( 0, points[0].length );
+        bbox.box.setFromArray( pointcloud.geometry.attributes.position.array.slice(0, 3 * points[0].length) );
         pointcloud.geometry.attributes.position.needsUpdate = true;
         for (let i = 0; i < points[1].length; i+=1) {
           pointcloud.geometry.attributes.color.array[3 * i] = points[1][i][0];
