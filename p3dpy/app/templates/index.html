@@ -21,13 +21,14 @@
       import Stats from '/static/js/stats.module.js';
       import { GUI } from '/static/js/dat.gui.module.js';
       let camera, scene, renderer, controls;
-      let pointcloud, geometry;
+      let pointcloud, geometry, grid;
       let dataName = [];
       let dataList = [];
       const MAX_POINTS = {{ parameters.max_points }};
 
       let guiCtrl = function(){
         this.background = "#000000";
+        this.grid = true;
         {% for key, value in parameters.gui_params.items() %}
         this.{{ key|e }} = {{ value[0]|e }};
         {% endfor %}
@@ -36,6 +37,7 @@
       let gui = new GUI();
       let guiObj = new guiCtrl();
       gui.addColor( guiObj , 'background' ).onChange(setBackgroundColor);
+      gui.add( guiObj, 'grid').onChange(setGrid);
       {% for key, value in parameters.gui_params.items() %}
       gui.add( guiObj, '{{ key|e }}', {{ value[1]|e }}, {{ value[2]|e }}, {{ value[3]|e }}).onChange(setParameters);
       {% endfor %}
@@ -82,13 +84,13 @@
       };
 
       function init() {
-        camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 2000 );
-        camera.position.z = 100;
+        camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 100 );
+        camera.position.z = 10;
 
         scene = new THREE.Scene();
 
         geometry = new THREE.Geometry();
-        const material = new THREE.PointsMaterial({size: 3.0, opacity: 1, vertexColors: THREE.VertexColors});
+        const material = new THREE.PointsMaterial({size: 0.01, opacity: 1, vertexColors: THREE.VertexColors});
         geometry = new THREE.BufferGeometry();
         let positions = new Float32Array( MAX_POINTS * 3 );
         geometry.setAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
@@ -98,6 +100,9 @@
         pointcloud = new THREE.Points(geometry, material);
         pointcloud.traverse( function( object ) { object.frustumCulled = false; } );
         scene.add(pointcloud);
+
+        grid = new THREE.GridHelper( 20, 20, 0x0000ff, 0x808080 );
+        scene.add( grid );
 
         renderer = new THREE.WebGLRenderer( { antialias: true, canvas: document.querySelector('#myCanvas')} );
         renderer.setPixelRatio( window.devicePixelRatio );
@@ -130,6 +135,10 @@
         scene.background = new THREE.Color( guiObj.background );
       }
 
+      function setGrid() {
+        grid.material.visible = guiObj.grid;
+      }
+
       function setParameters() {
         const param  = {
           method: "POST",
@@ -145,9 +154,9 @@
         let pc = JSON.parse(msg.data);
         let points = pc["points"];
         for (let i = 0; i < points[0].length; i+=1) {
-          pointcloud.geometry.attributes.position.array[3 * i] = points[0][i][0] * 1.0e3;
-          pointcloud.geometry.attributes.position.array[3 * i + 1] = points[0][i][1] * 1.0e3;
-          pointcloud.geometry.attributes.position.array[3 * i + 2] = points[0][i][2] * 1.0e3;
+          pointcloud.geometry.attributes.position.array[3 * i] = points[0][i][0];
+          pointcloud.geometry.attributes.position.array[3 * i + 1] = points[0][i][1];
+          pointcloud.geometry.attributes.position.array[3 * i + 2] = points[0][i][2];
         }
         pointcloud.geometry.setDrawRange( 0, points[0].length );
         pointcloud.geometry.attributes.position.needsUpdate = true;
