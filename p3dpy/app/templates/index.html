@@ -37,9 +37,15 @@
 
       let gui = new GUI();
       let guiObj = new guiCtrl();
-      gui.addColor( guiObj , 'background' ).onChange(setBackgroundColor);
-      gui.add( guiObj, 'boundingbox').onChange(setBoundingBox);
-      gui.add( guiObj, 'grid').onChange(setGrid);
+      gui.addColor( guiObj , 'background' ).onChange(() => {
+        scene.background = new THREE.Color( guiObj.background );
+      });
+      gui.add( guiObj, 'boundingbox').onChange(() => {
+        bbox.material.visible = guiObj.boundingbox;
+      });
+      gui.add( guiObj, 'grid').onChange(() => {
+        grid.material.visible = guiObj.grid;
+      });
       {% for key, value in parameters.gui_params.items() %}
       gui.add( guiObj, '{{ key|e }}', {{ value[1]|e }}, {{ value[2]|e }}, {{ value[3]|e }}).onChange(setParameters);
       {% endfor %}
@@ -137,18 +143,6 @@
         controls.update();
         renderer.render( scene, camera );
         stats.end();
-      }
-
-      function setBackgroundColor() {
-        scene.background = new THREE.Color( guiObj.background );
-      }
-
-      function setBoundingBox() {
-        bbox.material.visible = guiObj.boundingbox;
-      }
-
-      function setGrid() {
-        grid.material.visible = guiObj.grid;
       }
 
       function setParameters() {
