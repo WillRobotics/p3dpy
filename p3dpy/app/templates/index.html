@@ -22,6 +22,7 @@
       import { GUI } from '/static/js/dat.gui.module.js';
       let camera, scene, renderer, controls;
       let pointcloud, geometry, grid, bbox;
+      let sprite, canvas, context, texture;
       let dataName = [];
       let dataList = [];
       const MAX_POINTS = {{ parameters.max_points }};
@@ -42,6 +43,7 @@
       });
       gui.add( guiObj, 'boundingbox').onChange(() => {
         bbox.material.visible = guiObj.boundingbox;
+        sprite.material.visible = guiObj.boundingbox;
       });
       gui.add( guiObj, 'grid').onChange(() => {
         grid.material.visible = guiObj.grid;
@@ -118,6 +120,22 @@
         bbox.material.visible = guiObj.boundingbox;
         scene.add( bbox );
 
+        canvas = document.createElement('canvas');
+        context = canvas.getContext('2d');
+        context.font = "bold 20px Serif";
+        context.textAlign = "left";
+        context.textBaseline = "top";
+        context.fillStyle = "#ffff00";
+
+        texture = new THREE.Texture(canvas);
+        const spriteMaterial = new THREE.SpriteMaterial({
+          map: texture, 
+        });
+        sprite = new THREE.Sprite(spriteMaterial);
+        sprite.material.visible = guiObj.boundingbox;
+        sprite.scale.set(10, 5, 1);
+        scene.add(sprite);
+
         renderer = new THREE.WebGLRenderer( { antialias: true, canvas: document.querySelector('#myCanvas')} );
         renderer.setPixelRatio( window.devicePixelRatio );
         renderer.setSize( window.innerWidth, window.innerHeight );
@@ -166,6 +184,13 @@
         }
         pointcloud.geometry.setDrawRange( 0, points[0].length );
         bbox.box.setFromArray( pointcloud.geometry.attributes.position.array.slice(0, 3 * points[0].length) );
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        const text = "(" + (bbox.box.max.x - bbox.box.min.x).toFixed(2) +
+          ", " + (bbox.box.max.y - bbox.box.min.y).toFixed(2) +
+          ", " + (bbox.box.max.z - bbox.box.min.z).toFixed(2) + ")";
+        context.fillText(text, 0, 0);
+        texture.needsUpdate = true;
+        sprite.position.set( bbox.box.max.x, bbox.box.max.y, bbox.box.max.z );
         pointcloud.geometry.attributes.position.needsUpdate = true;
         for (let i = 0; i < points[1].length; i+=1) {
           pointcloud.geometry.attributes.color.array[3 * i] = points[1][i][0];
