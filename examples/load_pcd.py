@@ -5,6 +5,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 pc = pp.io.load_pcd('data/bunny.pcd')
 pc = pp.filter.voxel_grid_filter(pc, 0.02)
+pc.compute_normals(0.1)
 print(pc._points)
 
 fig = plt.figure(figsize = (8, 8))

@@ -15,7 +15,7 @@ def random_sampling(pc: pointcloud.PointCloud, n_sample: int) -> pointcloud.Poin
     return pointcloud.PointCloud(pc._points[np.random.randint(len(pc), size=n_sample), :], field=pc._field)
 
 
-def pass_through_filter(min_lim: float, max_lim: float, axis: int = 0) -> pointcloud.PointCloud:
+def pass_through_filter(pc: pointcloud.PointCloud, min_lim: float, max_lim: float, axis: int = 0) -> pointcloud.PointCloud:
     axis_pc = pc.points[:, axis]
     return pointcloud.PointCloud(pc._points[(axis_pc >= min_lim) & (axis_pc <= max_lim), :], field=pc._field)
 

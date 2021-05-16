@@ -1,6 +1,9 @@
-from typing import Optional
+from __future__ import annotations
+from typing import Optional, Tuple
 import copy
+
 import numpy as np
+from scipy.spatial import KDTree
 
 
 class FieldBase(object):
@@ -88,7 +91,7 @@ class DynamicField(FieldBase):
 class PointCloud(object):
     """Point cloud class."""
 
-    def __init__(self, points=[], field=PointXYZField()):
+    def __init__(self, points=[], field=PointXYZField()) -> None:
         """Constructor
 
         Parameters
@@ -104,13 +107,13 @@ class PointCloud(object):
         self._field = field
         self._points = points
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._points)
 
     def has_field(self, name: str) -> bool:
         return self._field.has_field(name)
 
-    def finalize(self):
+    def finalize(self) -> None:
         self._points = np.array(self._points)
 
     def mean(self) -> np.ndarray:
@@ -124,17 +127,17 @@ class PointCloud(object):
     def max_point(self) -> np.ndarray:
         return self.points.max(axis=0)
 
-    def bounding_box(self) -> (np.ndarray, np.ndarray):
+    def bounding_box(self) -> Tuple[np.ndarray, np.ndarray]:
         return self.min_point(), self.max_point()
 
     @property
-    def points(self):
+    def points(self) -> Optional[np.ndarray]:
         if isinstance(self._points, list):
             self._points = np.array(self._points)
         return self._points[:, self._field.slices["point"]]
 
     @property
-    def normals(self):
+    def normals(self) -> Optional[np.ndarray]:
         if isinstance(self._points, list):
             self._points = np.array(self._points)
         if self.has_field("normal"):
@@ -143,7 +146,7 @@ class PointCloud(object):
             return None
 
     @property
-    def colors(self):
+    def colors(self) -> Optional[np.ndarray]:
         if isinstance(self._points, list):
             self._points = np.array(self._points)
         if self.has_field("color"):
@@ -151,32 +154,42 @@ class PointCloud(object):
         else:
             return None
 
-    def append(self, point: np.ndarray):
+    def append(self, point: np.ndarray) -> None:
         if isinstance(self._points, np.ndarray):
             self._points = list(self._points)
         self._points.append(point)
 
-    def extend(self, points: np.ndarray):
+    def extend(self, points: np.ndarray) -> None:
         if isinstance(self._points, np.ndarray):
             self._points = list(self._points)
         self._points.extend(points)
 
-    def transform_(self, trans: np.ndarray):
+    def transform_(self, trans: np.ndarray) -> None:
         if isinstance(self._points, list):
             self._points = np.array(self._points)
         self._points[:, self._field.slices["point"]] = np.dot(self.points, trans[:3, :3].T) + trans[:3, 3]
         if self.has_field("normal"):
             self._points[:, self._field.slices["normal"]] = np.dot(self.normals, trans[:3, :3].T)
 
-    def transform(self, trans: np.ndarray):
+    def transform(self, trans: np.ndarray) -> PointCloud:
         pc = PointCloud(copy.deepcopy(self._points), self._field)
         pc.transform_(trans)
         return pc
 
-    def set_uniform_color(self, color: np.ndarray):
+    def set_uniform_color(self, color: np.ndarray) -> None:
         if self.has_field("colors"):
             self._points[:, self._field.slices["color"]] = color
         else:
             self._field = DynamicField(self._field)
             self._field.add_field("color", 3)
             self._points = np.c_[self._points, np.tile(color, (len(self), 1))]
+
+    def compute_normals(self, radius: float) -> None:
+        tree = KDTree(self.points)
+        normals = [np.linalg.eigh(np.cov(self.points[tree.query_ball_point(p, radius), :].T))[1][:, 0] for p in self.points]
+        if self.has_field("normals"):
+            self._points[:, self._field.slices["normal"]] = normals
+        else:
+            self._field = DynamicField(self._field)
+            self._field.add_field("normals", 3)
+            self._points = np.c_[self._points, normals]
