@@ -51,7 +51,7 @@ def get_intrinsic_matrix(frame):
 
 if __name__ == "__main__":
 
-    params = {"dist_thresh": (0.03, 0.0, 0.1), "voxel_size": (0.01, 0.0, 0.1)}
+    params = {"dist_thresh": (0.03, 0.0, 0.1), "voxel_size": (0.01, 0.0, 0.1), "point_size_thresh": (100, 0, 1000)}
     pp.vizspawn(host=args.host, params=params)
 
     # Create a pipeline
@@ -133,14 +133,18 @@ if __name__ == "__main__":
             print("Number of class:", n_clusters)
             masks = [labels == i for i in range(n_clusters)]
 
-            plane_pts[:, 3:] = [0.0, 0.0, 1.0]
-            for i in range(n_clusters):
-                not_plane_pts[masks[i], 3:] = colors[i % len(colors)]
-            result_pts = np.vstack([plane_pts, not_plane_pts])
-
             # Draw results
-            result_pc = pp.PointCloud(result_pts, pp.pointcloud.PointXYZRGBField())
-            res = client.post_pointcloud(result_pc, 'test')
+            plane_pts[:, 3:] = [0.0, 0.0, 1.0]
+            plane_pc = pp.PointCloud(plane_pts, pp.pointcloud.PointXYZRGBField())
+            res = client.post_pointcloud(plane_pc, "Plane")
+            for i in range(n_clusters):
+                if len(not_plane_pts[masks[i], :]) < cur_params["point_size_thresh"]:
+                    continue
+                not_plane_pts[masks[i], 3:] = colors[i % len(colors)]
+                not_plane_pc = pp.PointCloud(not_plane_pts[masks[i], :], pp.pointcloud.PointXYZRGBField())
+                res = client.post_pointcloud(not_plane_pc, f"Object{i}")
+
+            # Log areas
             plane_area = calc_convexhull_area(plane_pts[:, :2])
             client.clear_log()
             client.add_log(f"Plane Area: {plane_area:.3f}")
