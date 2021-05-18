@@ -177,7 +177,7 @@ class PointCloud(object):
         return pc
 
     def set_uniform_color(self, color: np.ndarray) -> None:
-        if self.has_field("colors"):
+        if self.has_field("color"):
             self._points[:, self._field.slices["color"]] = color
         else:
             self._field = DynamicField(self._field)
@@ -187,9 +187,9 @@ class PointCloud(object):
     def compute_normals(self, radius: float) -> None:
         tree = KDTree(self.points)
         normals = [np.linalg.eigh(np.cov(self.points[tree.query_ball_point(p, radius), :].T))[1][:, 0] for p in self.points]
-        if self.has_field("normals"):
+        if self.has_field("normal"):
             self._points[:, self._field.slices["normal"]] = normals
         else:
             self._field = DynamicField(self._field)
-            self._field.add_field("normals", 3)
+            self._field.add_field("normal", 3)
             self._points = np.c_[self._points, normals]
