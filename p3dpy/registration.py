@@ -24,13 +24,16 @@ def _kabsh(
     return tr
 
 
-def _compute_rmse(source_pts: np.ndarray, target_tree: KDTree) -> float:
-    return sum(target_tree.query(source_pts)[0]) / source_pts.shape[0]
+def _compute_rmse(source_pts: np.ndarray, target_tree: KDTree, top_k: int = -1) -> float:
+    if top_k <= 0:
+        return sum(target_tree.query(source_pts)[0]) / source_pts.shape[0]
+    else:
+        return sum(sorted(target_tree.query(source_pts)[0])[:top_k]) / source_pts.shape[0]
 
 
-def compute_rmse(source_pts: np.ndarray, target_pts: np.ndarray) -> float:
+def compute_rmse(source_pts: np.ndarray, target_pts: np.ndarray, top_k: int = -1) -> float:
     target_tree = KDTree(target_pts)
-    return _compute_rmse(source_pts, target_tree)
+    return _compute_rmse(source_pts, target_tree, top_k)
 
 
 def icp_registration(
