@@ -4,7 +4,7 @@ Numpy based simple pointcloud tools.
 
 ## Core features
 
-* Basic pointcloud operations (Transformation, Registration, Filtering,...)
+* Basic pointcloud operations (Transformation, Registration, Filtering, Feature,...)
 * Simple dependencies (numpy, scipy,... other basic python packages)
 * Browser based viewer
 * Easy use for single board computers (Raspberry Pi, Jetson,...)
