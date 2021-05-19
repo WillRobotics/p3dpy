@@ -131,7 +131,7 @@ class PointCloud(object):
         return self.min_point(), self.max_point()
 
     @property
-    def points(self) -> Optional[np.ndarray]:
+    def points(self) -> np.ndarray:
         if isinstance(self._points, list):
             self._points = np.array(self._points)
         return self._points[:, self._field.slices["point"]]

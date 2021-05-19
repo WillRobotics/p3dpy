@@ -37,7 +37,7 @@ def statistical_outlier_removal(
     return pointcloud.PointCloud(pc._points[avg_d < dist_thresh, :], pc._field)
 
 
-def voxel_grid_filter(pc: pointcloud.PointCloud, voxel_size: float):
+def voxel_grid_filter(pc: pointcloud.PointCloud, voxel_size: float) -> pointcloud.PointCloud:
     """Voxel grid filter
 
     Parameters

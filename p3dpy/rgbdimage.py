@@ -9,7 +9,7 @@ class RGBDImage(object):
         depth_img: np.ndarray,
         color_img: Optional[np.ndarray] = None,
         depth_scale: float = 1000.0,
-    ):
+    ) -> None:
         if (
             color_img is not None
             and depth_img.shape[0] != color_img.shape[0]
@@ -22,11 +22,11 @@ class RGBDImage(object):
             self._color_img /= 255.0
 
     @property
-    def depth(self):
+    def depth(self) -> np.ndarray:
         return self._depth_img
 
     @property
-    def color(self):
+    def color(self) -> np.ndarray:
         return self._color_img
 
     def pointcloud(self, intrinsic: np.ndarray, extrinsic: np.ndarray = np.identity(4)) -> pointcloud.PointCloud:

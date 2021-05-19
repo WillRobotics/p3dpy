@@ -1,10 +1,10 @@
-from typing import List
+from typing import List, Tuple
 import numpy as np
 from . import pointcloud
 
 
 class RANSACResult(object):
-    def __init__(self, fitness: float = 0.0, inlier_rmse: float = 0.0):
+    def __init__(self, fitness: float = 0.0, inlier_rmse: float = 0.0) -> None:
         self._fitness = fitness
         self._inlier_rmse = inlier_rmse
 
@@ -33,7 +33,7 @@ def _compute_plane(pc: pointcloud.PointCloud, inliers: List[int]) -> np.ndarray:
 
 def _evaluate_ransac(
     pc: pointcloud.PointCloud, plane: np.ndarray, dist_thresh: float
-) -> (RANSACResult, np.ndarray, float):
+) -> Tuple[RANSACResult, np.ndarray, float]:
     dists = np.abs(np.dot(np.c_[pc.points, np.ones(len(pc))], plane))
     mask = dists < dist_thresh
     dists = dists[mask]
@@ -46,7 +46,7 @@ def _evaluate_ransac(
 
 def segmentation_plane(
     pc: pointcloud.PointCloud, dist_thresh: float = 0.1, ransac_n: int = 3, num_iter: int = 100
-) -> (np.ndarray, np.ndarray):
+) -> Tuple[np.ndarray, np.ndarray]:
     res = RANSACResult()
     best_plane = np.zeros(4)
     for n in range(num_iter):

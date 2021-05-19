@@ -43,7 +43,7 @@ def compute_shot_descriptors(
     pc: pointcloud.PointCloud,
     radius: float,
     min_neighbors: int = 15,
-    n_grid_sector: int = 32,
+    n_grid_sectors: int = 32,
     max_angular_sectors: int = 32
 ) -> np.ndarray:
     if not pc.has_field("normal"):
@@ -55,7 +55,7 @@ def compute_shot_descriptors(
     radius1_4 = radius * 0.25
     tree = KDTree(pc.points)
     neighbors = [tree.query_ball_point(p, radius) for p in pc.points]
-    shots = np.zeros((len(pc), n_grid_sector * (n_bins + 1)))
+    shots = np.zeros((len(pc), n_grid_sectors * (n_bins + 1)))
     lrfs = _compute_shot_lrfs(pc, neighbors, radius)
     for i, (lrf, nb) in enumerate(zip(lrfs, neighbors)):
         n_nb = len(nb)

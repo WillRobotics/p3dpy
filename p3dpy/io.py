@@ -1,4 +1,4 @@
-from typing import TextIO, Union
+from typing import TextIO, Tuple, Union
 import struct
 import numpy as np
 import stl
@@ -29,7 +29,7 @@ _type_dict = {
 }
 
 
-def _parse_pcd_header(lines: list):
+def _parse_pcd_header(lines: list) -> Tuple[dict, str]:
     config = {}
     data_type = "ascii"
     for c in lines:

@@ -56,11 +56,11 @@ async def _loop(timeout: int = 3):
         await asyncio.sleep(1)
 
 
-def vizspawn(host: str = "127.0.0.1", port: int = 8000, params: dict = {}):
+def vizspawn(host: str = "127.0.0.1", port: int = 8000, params: dict = {}) -> None:
     asyncio.get_event_loop().run_until_complete(_spawn_vizserver(host=host, port=port, params=params))
 
 
-def vizloop(browser: bool = False, url: str = "http://127.0.0.1:8000"):
+def vizloop(browser: bool = False, url: str = "http://127.0.0.1:8000") -> None:
     if browser:
         webbrowser.open(url)
     asyncio.get_event_loop().run_until_complete(_loop())

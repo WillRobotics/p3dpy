@@ -1,4 +1,5 @@
 from typing import List
+
 import numpy as np
 from scipy.spatial import KDTree
 from . import pointcloud
@@ -23,8 +24,13 @@ def _kabsh(
     return tr
 
 
-def compute_rmse(source: pointcloud.PointCloud, target_tree: KDTree) -> float:
-    return sum(target_tree.query(source.points)[0]) / len(source)
+def _compute_rmse(source_pts: np.ndarray, target_tree: KDTree) -> float:
+    return sum(target_tree.query(source_pts)[0]) / source_pts.shape[0]
+
+
+def compute_rmse(source_pts: np.ndarray, target_pts: np.ndarray) -> float:
+    target_tree = KDTree(target_pts)
+    return _compute_rmse(source_pts, target_tree)
 
 
 def icp_registration(
@@ -46,7 +52,7 @@ def icp_registration(
         tr = _kabsh(cur_pc.points, target, ii)
         trans = np.dot(tr, trans)
         cur_pc.transform_(tr)
-        tmp_rmse = compute_rmse(cur_pc, target_tree)
+        tmp_rmse = _compute_rmse(cur_pc.points, target_tree)
         if rmse is not None and abs(tmp_rmse - rmse) < tol:
             break
         rmse = tmp_rmse
