@@ -7,3 +7,4 @@ from . import feature
 from . import filter
 from . import io
 from . import segmentation
+from . import registration
