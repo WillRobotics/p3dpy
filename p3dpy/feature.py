@@ -55,24 +55,25 @@ def compute_shot_descriptors(
     radius1_4 = radius * 0.25
     tree = KDTree(pc.points)
     neighbors = [tree.query_ball_point(p, radius) for p in pc.points]
-    shots = np.zeros((len(pc), n_grid_sectors * (n_bins + 1)))
     lrfs = _compute_shot_lrfs(pc, neighbors, radius)
-    for i, (lrf, nb) in enumerate(zip(lrfs, neighbors)):
+
+    def shot_fn(i, nb):
+        shots = np.zeros(n_grid_sectors * (n_bins + 1))
         n_nb = len(nb)
         if n_nb < min_neighbors:
-            continue
+            return shots
         for n in nb:
             q = pc.points[n, :] - pc.points[i, :]
             dist = np.linalg.norm(q)
             if dist == 0:
                 continue
 
-            cos_desc = min(max(np.dot(lrf[:, 2], pc.normals[i, :]), -1.0), 1.0)
+            cos_desc = min(max(np.dot(lrfs[i][:, 2], pc.normals[i, :]), -1.0), 1.0)
             bindist = ((1.0 + cos_desc) * n_bins) / 2.0
 
-            x_lrf = np.dot(q, lrf[:, 0])
-            y_lrf = np.dot(q, lrf[:, 1])
-            z_lrf = np.dot(q, lrf[:, 2])
+            x_lrf = np.dot(q, lrfs[i][:, 0])
+            y_lrf = np.dot(q, lrfs[i][:, 1])
+            z_lrf = np.dot(q, lrfs[i][:, 2])
             if abs(x_lrf) < 1e-30:
                 x_lrf = 0.0
             if abs(y_lrf) < 1e-30:
@@ -95,9 +96,9 @@ def compute_shot_descriptors(
             bindist -= step_index
             init_weight = 1.0 - abs(bindist)
             if bindist > 0:
-                shots[i, volume_index + ((step_index + 1) % n_bins)] += bindist
+                shots[volume_index + ((step_index + 1) % n_bins)] += bindist
             else:
-                shots[i, volume_index + ((step_index - 1 + n_bins) % n_bins)] -= bindist
+                shots[volume_index + ((step_index - 1 + n_bins) % n_bins)] -= bindist
 
             if dist > radius1_2:
                 radius_dist = (dist - radius3_4) / radius1_2
@@ -105,14 +106,14 @@ def compute_shot_descriptors(
                     init_weight += 1 - radius_dist
                 else:
                     init_weight += 1 + radius_dist
-                    shots[i, (desc_index - 2) * (n_bins + 1) + step_index] -= radius_dist
+                    shots[(desc_index - 2) * (n_bins + 1) + step_index] -= radius_dist
             else:
                 radius_dist = (dist - radius1_4) / radius1_2
                 if dist < radius1_4:
                     init_weight += 1 + radius_dist
                 else:
                     init_weight += 1 - radius_dist
-                    shots[i, (desc_index - 2) * (n_bins + 1) + step_index] += radius_dist
+                    shots[(desc_index - 2) * (n_bins + 1) + step_index] += radius_dist
             inclination_cos = max(min(z_lrf / dist, 1.0), -1.0)
             inclination = np.arccos(inclination_cos)
             if inclination > PST_RAD_90 or\
@@ -122,14 +123,14 @@ def compute_shot_descriptors(
                     init_weight += 1 - inclination_dist
                 else:
                     init_weight += 1 + inclination_dist
-                    shots[i, (desc_index + 1) * (n_bins + 1) + step_index] -= inclination_dist
+                    shots[(desc_index + 1) * (n_bins + 1) + step_index] -= inclination_dist
             else:
                 inclination_dist = (inclination - PST_RAD_45) / PST_RAD_90
                 if inclination < PST_RAD_45:
                     init_weight += 1 + inclination_dist
                 else:
                     init_weight += 1 - inclination_dist
-                    shots[i, (desc_index - 1) * (n_bins + 1) + step_index] += inclination_dist
+                    shots[(desc_index - 1) * (n_bins + 1) + step_index] += inclination_dist
             if y_lrf != 0.0 or x_lrf != 0.0:
                 azimuth = np.arctan2(y_lrf, x_lrf)
                 sel = desc_index >> 2
@@ -140,11 +141,15 @@ def compute_shot_descriptors(
                 if azimuth_dist > 0:
                     init_weight += 1 - azimuth_dist
                     interp_index = (desc_index + 4) % max_angular_sectors
-                    shots[i, interp_index * (n_bins + 1) + step_index] += azimuth_dist
+                    shots[interp_index * (n_bins + 1) + step_index] += azimuth_dist
                 else:
                     init_weight += 1 + azimuth_dist
                     interp_index = (desc_index - 4 + max_angular_sectors) % max_angular_sectors
-                    shots[i, interp_index * (n_bins + 1) + step_index] -= azimuth_dist
-            shots[i, volume_index + step_index] += init_weight
-            shots[i, :] /= np.linalg.norm(shots[i, :])
-    return shots
+                    shots[interp_index * (n_bins + 1) + step_index] -= azimuth_dist
+            shots[volume_index + step_index] += init_weight
+            shots /= np.linalg.norm(shots)
+            return shots
+
+    shot_fn_v = np.frompyfunc(shot_fn, 2, 1)
+    shots = shot_fn_v(np.arange(len(neighbors)), np.array(neighbors, dtype=object))
+    return np.array([shot.astype(np.float32) for shot in shots])
