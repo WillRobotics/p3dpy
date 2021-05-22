@@ -13,11 +13,10 @@ PST_RAD_PI_7_8 = 2.7488935718910690836548129603691
 
 
 def _compute_shot_lrfs(pc: pointcloud.PointCloud, neighbors: List[Tuple], radius: float) -> np.ndarray:
-    lrfs = np.zeros((len(pc), 3, 3))
-    for i, nb in enumerate(neighbors):
+    def shot_lrf(i, nb):
         n_nb = len(nb)
         if n_nb < 5:
-            continue
+            np.zeros((3, 3))
         q = pc.points[nb, :] - pc.points[i, :]
         dists = np.linalg.norm(q)
         w = radius - dists
@@ -32,9 +31,10 @@ def _compute_shot_lrfs(pc: pointcloud.PointCloud, neighbors: List[Tuple], radius
             x *= -1.0
         if n_pz < n_nb - n_pz:
             z *= -1.0
-        lrfs[i, :, 1] = np.cross(z, x)
-        lrfs[i, :, 0] = x
-        lrfs[i, :, 2] = z
+        return np.c_[x, np.cross(z, x), z]
+
+    shot_lrf_v = np.frompyfunc(shot_lrf, 2, 1)
+    lrfs = shot_lrf_v(np.arange(len(neighbors)), np.array(neighbors, dtype=object))
     return lrfs
 
 
