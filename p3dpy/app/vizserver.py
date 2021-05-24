@@ -92,6 +92,14 @@ async def store_data(data: PointCloudData):
     return {"res": "ok", "name": data.name}
 
 
+@app.post("pointcloud/rename")
+async def rename_data(body: dict = Body(...)):
+    if body["name"] in stored_data["pointcloud"]:
+        stored_data["pointcloud"][body["new_name"]] = stored_data["pointcloud"][body["name"]]
+        del stored_data["pointcloud"][body["name"]]
+    return {"res": "ok", "name": body["new_name"]}
+
+
 @app.put("/pointcloud/update/{name}")
 async def update_data(name: str, data: PointCloudData):
     points = np.frombuffer(_decode(data.points), dtype=np.float32)

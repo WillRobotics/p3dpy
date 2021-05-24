@@ -25,6 +25,13 @@ class VizClient(object):
         )
         return response.json()
 
+    def rename_pointcloud(self, curr_name: str, new_name: str) -> dict:
+        response = requests.post(
+            urllib.parse.urljoin(self._url, "pointcloud/rename"),
+            json={"name": curr_name, "new_name": new_name},
+        )
+        return response.json()
+
     def update_pointcloud(self, name: str, pointcloud: PointCloud) -> dict:
         points = pointcloud.points.astype(np.float32).tobytes("C")
         colors = pointcloud.colors
