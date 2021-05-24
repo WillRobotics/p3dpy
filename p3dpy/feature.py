@@ -42,7 +42,7 @@ def _compute_shot_lrfs(pc: pointcloud.PointCloud, neighbors: List[Tuple], radius
 def compute_shot_descriptors(
     pc: pointcloud.PointCloud,
     radius: float,
-    min_neighbors: int = 15,
+    min_neighbors: int = 5,
     n_grid_sectors: int = 32,
     max_angular_sectors: int = 32
 ) -> np.ndarray:
@@ -80,14 +80,15 @@ def compute_shot_descriptors(
                 y_lrf = 0.0
             if abs(z_lrf) < 1e-30:
                 z_lrf = 0.0
-            bit4 = 1 if (y_lrf > 0 or (y_lrf == 0 and x_lrf < 0)) else 0
-            bit3 = 1 if (x_lrf > 0 or (x_lrf == 0 and y_lrf > 0)) else 0
+            bit4 = True if (y_lrf > 0 or (y_lrf == 0 and x_lrf < 0)) else False
+            bit3 = not bit4 if (x_lrf > 0 or (x_lrf == 0 and y_lrf > 0)) else bit4
+            bit3, bit4 = int(bit3), int(bit4)
             desc_index = (bit4 << 3) + (bit3 << 2)
             desc_index = desc_index << 1
             if x_lrf * y_lrf > 0 or x_lrf == 0:
                 desc_index += 0 if abs(x_lrf) >= abs(y_lrf) else 4
             else:
-                desc_index += 4 if abs(x_lrf) >= abs(y_lrf) else 0
+                desc_index += 4 if abs(x_lrf) > abs(y_lrf) else 0
             desc_index += 1 if z_lrf > 0 else 0
             # RADII
             desc_index += 2 if dist > radius1_2 else 0
@@ -113,7 +114,7 @@ def compute_shot_descriptors(
                     init_weight += 1 + radius_dist
                 else:
                     init_weight += 1 - radius_dist
-                    shots[(desc_index - 2) * (n_bins + 1) + step_index] += radius_dist
+                    shots[(desc_index + 2) * (n_bins + 1) + step_index] += radius_dist
             inclination_cos = max(min(z_lrf / dist, 1.0), -1.0)
             inclination = np.arccos(inclination_cos)
             if inclination > PST_RAD_90 or\
