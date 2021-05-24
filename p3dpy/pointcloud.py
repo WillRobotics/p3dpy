@@ -7,7 +7,7 @@ from scipy.spatial import KDTree
 
 
 class FieldBase(object):
-    def __init__(self):
+    def __init__(self) -> None:
         self.slices = {}
 
     def size(self) -> int:
@@ -21,7 +21,7 @@ class PointXYZField(FieldBase):
     X = 0
     Y = 1
     Z = 2
-    def __init__(self):
+    def __init__(self) -> None:
         self.slices = {"point": slice(3)}
 
     def size(self) -> int:
@@ -32,7 +32,7 @@ class PointXYZRGBField(PointXYZField):
     R = 3
     G = 4
     B = 5
-    def __init__(self):
+    def __init__(self) -> None:
         self.slices = {"point": slice(3), "color": slice(3, 6)}
 
     def size(self) -> int:
@@ -44,7 +44,7 @@ class PointXYZRGBAField(PointXYZField):
     G = 4
     B = 5
     A = 6
-    def __init__(self):
+    def __init__(self) -> None:
         self.slices = {"point": slice(3), "color": slice(3, 6), "alpha": slice(6, 7)}
 
     def size(self) -> int:
@@ -55,7 +55,7 @@ class PointXYZNormalField(PointXYZField):
     NX = 3
     NY = 4
     NZ = 5
-    def __init__(self):
+    def __init__(self) -> None:
         self.slices = {"point": slice(3), "normal": slice(3, 6)}
 
     def size(self) -> int:
@@ -66,7 +66,7 @@ class PointXYZRGBNormalField(PointXYZRGBField):
     NX = 6
     NY = 7
     NZ = 8
-    def __init__(self):
+    def __init__(self) -> None:
         self.slices = {"point": slice(3), "color": slice(3, 6), "normal": slice(6, 9)}
 
     def size(self) -> int:
@@ -74,13 +74,13 @@ class PointXYZRGBNormalField(PointXYZRGBField):
 
 
 class DynamicField(FieldBase):
-    def __init__(self, init_field: Optional[FieldBase] = None):
+    def __init__(self, init_field: Optional[FieldBase] = None) -> None:
         if init_field is None:
             self.slices = {}
         else:
             self.slices = init_field.slices
 
-    def add_field(self, name: str, n_elem: slice):
+    def add_field(self, name: str, n_elem: slice) -> None:
         size = self.size()
         self.slices.update({name: slice(size, size + n_elem)})
 
