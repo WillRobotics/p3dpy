@@ -49,6 +49,12 @@ class VizClient(object):
         pointcloud.points_ = np.array(points[0])
         return pointcloud
 
+    def delete_all_pointcloud(self) -> dict:
+        response = requests.delete(
+            urllib.parse.urljoin(self._url, "pointcloud/all"),
+        )
+        return response.json()
+
     def add_log(self, message: str) -> dict:
         response = requests.post(
             urllib.parse.urljoin(self._url, "log/store"),
@@ -57,8 +63,8 @@ class VizClient(object):
         return response.json()
 
     def clear_log(self) -> dict:
-        response = requests.get(
-            urllib.parse.urljoin(self._url, "log/clear"),
+        response = requests.delete(
+            urllib.parse.urljoin(self._url, "log"),
         )
         return response.json()
 

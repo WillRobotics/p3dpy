@@ -110,6 +110,12 @@ async def update_data(name: str, data: PointCloudData):
     return {"res": "ok", "name": data.name}
 
 
+@app.delete("/pointcloud/all")
+async def delete_all_pointcloud():
+    stored_data["pointcloud"] = {}
+    return {"res": "ok"}
+
+
 @app.post("/log/store")
 async def store_log(body: dict = Body(...)):
     if isinstance(body["log"], str):
@@ -118,8 +124,8 @@ async def store_log(body: dict = Body(...)):
     return {"res": "error"}
 
 
-@app.get("/log/clear")
-async def clear_log():
+@app.delete("/log")
+async def delete_log():
     stored_data["clearLog"] = True
     return {"res": "ok"}
 

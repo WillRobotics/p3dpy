@@ -1,4 +1,3 @@
-import sys
 import random
 import string
 import pyrealsense2 as rs
