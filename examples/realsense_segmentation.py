@@ -1,4 +1,6 @@
 import sys
+import random
+import string
 import pyrealsense2 as rs
 import numpy as np
 from enum import IntEnum
@@ -28,6 +30,10 @@ def calc_convexhull_area(points):
     for i in range(len(hull_points) - 1):
         area += calc_triangle_area(hull_mean, hull_points[i], hull_points[i + 1])
     return area
+
+
+def randomname(n):
+   return ''.join(random.choices(string.ascii_letters + string.digits, k=n))
 
 
 class Preset(IntEnum):
@@ -89,6 +95,7 @@ if __name__ == "__main__":
     pcd = pp.PointCloud()
     flip_transform = np.array([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]])
     client = pp.VizClient(host=args.host)
+    features = {}
 
     try:
         while True:
@@ -137,21 +144,30 @@ if __name__ == "__main__":
             plane_pts[:, 3:] = [0.0, 0.0, 1.0]
             plane_pc = pp.PointCloud(plane_pts, pp.pointcloud.PointXYZRGBField())
             res = client.post_pointcloud(plane_pc, "Plane")
+            plane_area = calc_convexhull_area(plane_pts[:, :2])
+            client.clear_log()
+            client.add_log(f"Plane Area: {plane_area:.3f}")
             for i in range(n_clusters):
                 if len(not_plane_pts[masks[i], :]) < cur_params["point_size_thresh"]:
                     continue
                 not_plane_pts[masks[i], 3:] = colors[i % len(colors)]
                 not_plane_pc = pp.PointCloud(not_plane_pts[masks[i], :], pp.pointcloud.PointXYZRGBField())
-                res = client.post_pointcloud(not_plane_pc, f"Object{i}")
-
-            # Log areas
-            plane_area = calc_convexhull_area(plane_pts[:, :2])
-            client.clear_log()
-            client.add_log(f"Plane Area: {plane_area:.3f}")
-            for i in range(n_clusters):
+                name = randomname(10)
+                try:
+                    not_plane_pc.compute_normals(0.05)
+                    feature = pp.feature.compute_shot_descriptors(not_plane_pc, 0.05)
+                    rmses = [pp.registration.compute_rmse(feature, v, 50) for v in features.values()]
+                    if len(features) == 0 or min(rmses) > 0.2:
+                        features[name] = feature
+                    else:
+                        min_idx = np.argmin(rmses)
+                        name = list(features.keys())[min_idx]
+                except:
+                    print("Fail to compute features.")
                 obj_area = calc_convexhull_area(not_plane_pts[masks[i], :2])
-                client.add_log(f"Obj{i} Area: {obj_area:.3f}")
-            print(res)
+                client.add_log(f"{name} Area: {obj_area:.3f}")
+                res = client.post_pointcloud(not_plane_pc, name)
+                print(res)
 
     finally:
         pipeline.stop()
