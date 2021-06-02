@@ -178,19 +178,20 @@
         let pc = JSON.parse(msg.data);
         let points = pc["points"];
         for (let i = 0; i < points[0].length; i+=1) {
-          pointcloud.geometry.attributes.position.array[3 * i] = points[0][i][0];
-          pointcloud.geometry.attributes.position.array[3 * i + 1] = points[0][i][1];
-          pointcloud.geometry.attributes.position.array[3 * i + 2] = points[0][i][2];
+          // swap x-y-z coordinates
+          pointcloud.geometry.attributes.position.array[3 * i] = points[0][i][1];
+          pointcloud.geometry.attributes.position.array[3 * i + 1] = points[0][i][2];
+          pointcloud.geometry.attributes.position.array[3 * i + 2] = points[0][i][0];
         }
         pointcloud.geometry.setDrawRange( 0, points[0].length );
         bbox.box.setFromArray( pointcloud.geometry.attributes.position.array.slice(0, 3 * points[0].length) );
         context.clearRect(0, 0, canvas.width, canvas.height);
-        const text = "(" + (bbox.box.max.x - bbox.box.min.x).toFixed(2) +
-          ", " + (bbox.box.max.y - bbox.box.min.y).toFixed(2) +
-          ", " + (bbox.box.max.z - bbox.box.min.z).toFixed(2) + ")";
+        const text = "(" + (bbox.box.max.y - bbox.box.min.y).toFixed(2) +
+          ", " + (bbox.box.max.z - bbox.box.min.z).toFixed(2) +
+          ", " + (bbox.box.max.x - bbox.box.min.x).toFixed(2) + ")";
         context.fillText(text, 0, 0);
         texture.needsUpdate = true;
-        sprite.position.set( bbox.box.max.x, bbox.box.max.y, bbox.box.max.z );
+        sprite.position.set( bbox.box.max.y, bbox.box.max.z, bbox.box.max.x );
         pointcloud.geometry.attributes.position.needsUpdate = true;
         for (let i = 0; i < points[1].length; i+=1) {
           pointcloud.geometry.attributes.color.array[3 * i] = points[1][i][0];
