@@ -122,7 +122,7 @@ if __name__ == "__main__":
             pcd.transform_(flip_transform)
             pcd = pp.filter.voxel_grid_filter(pcd, cur_params["voxel_size"])
             plane, mask = pp.segmentation.segmentation_plane(pcd, dist_thresh=cur_params["dist_thresh"])
-            axis = np.array([-plane[1], plane[0], 0.0])
+            axis = np.array([-np.sign(plane[0]) * plane[1], np.abs(plane[0]), 0.0])
             axis /= np.linalg.norm(axis)
             angle = np.arccos(plane[2] / np.linalg.norm(plane[:3]))
             trans = np.identity(4)
@@ -149,9 +149,9 @@ if __name__ == "__main__":
             for i in range(n_clusters):
                 if len(not_plane_pts[masks[i], :]) < cur_params["point_size_thresh"]:
                     continue
-                not_plane_pts[masks[i], 3:] = colors[i % len(colors)]
                 not_plane_pc = pp.PointCloud(not_plane_pts[masks[i], :], pp.pointcloud.PointXYZRGBField())
                 name = randomname(10)
+                min_idx = i
                 try:
                     not_plane_pc.compute_normals(0.05)
                     feature = pp.feature.compute_shot_descriptors(not_plane_pc, 0.05)
@@ -165,6 +165,7 @@ if __name__ == "__main__":
                     print("Fail to compute features.")
                 obj_area = calc_convexhull_area(not_plane_pts[masks[i], :2])
                 client.add_log(f"{name} Area: {obj_area:.3f}")
+                not_plane_pc.set_uniform_color(colors[min_idx % len(colors)])
                 res = client.post_pointcloud(not_plane_pc, name)
                 print(res)
 
