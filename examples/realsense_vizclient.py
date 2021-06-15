@@ -86,7 +86,7 @@ if __name__ == "__main__":
             if not aligned_depth_frame or not color_frame:
                 continue
 
-            depth_image = np.array(aligned_depth_frame.get_data())
+            depth_image = np.array(aligned_depth_frame.get_data()).astype(np.float32)
             color_image = np.asarray(color_frame.get_data())
             rgbd_image = pp.RGBDImage(depth_image, color_image)
             pcd = rgbd_image.pointcloud(intrinsic)

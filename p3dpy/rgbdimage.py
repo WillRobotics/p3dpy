@@ -16,8 +16,8 @@ class RGBDImage(object):
             and depth_img.shape[1] != color_img.shape[1]
         ):
             raise ValueError("The image sizes of the depth image and the color image do not match.")
-        self._depth_img = depth_img.astype(np.float64) / depth_scale
-        self._color_img = color_img.astype(np.float64)
+        self._depth_img = depth_img.astype(np.float32) / depth_scale
+        self._color_img = color_img.astype(np.float32)
         if color_img.dtype == np.uint8:
             self._color_img /= 255.0
 
