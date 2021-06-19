@@ -1,7 +1,7 @@
 from typing import List, Tuple
 
 import numpy as np
-from scipy.spatial import KDTree
+from scipy.spatial import cKDTree
 
 from . import pointcloud
 
@@ -53,7 +53,7 @@ def compute_shot_descriptors(
     radius1_2 = radius * 0.5
     radius3_4 = radius * 3.0 / 4.0
     radius1_4 = radius * 0.25
-    tree = KDTree(pc.points)
+    tree = cKDTree(pc.points)
     neighbors = [tree.query_ball_point(p, radius) for p in pc.points]
     lrfs = _compute_shot_lrfs(pc, neighbors, radius)
 

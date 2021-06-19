@@ -3,7 +3,7 @@ from typing import Optional, Tuple
 import copy
 
 import numpy as np
-from scipy.spatial import KDTree
+from scipy.spatial import cKDTree
 
 
 class FieldBase(object):
@@ -185,7 +185,7 @@ class PointCloud(object):
             self._points = np.c_[self._points, np.tile(color, (len(self), 1))]
 
     def compute_normals(self, radius: float) -> None:
-        tree = KDTree(self.points)
+        tree = cKDTree(self.points)
         normals = [np.linalg.eigh(np.cov(self.points[tree.query_ball_point(p, radius), :].T))[1][:, 0] for p in self.points]
         if self.has_field("normal"):
             self._points[:, self._field.slices["normal"]] = normals

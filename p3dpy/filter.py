@@ -2,7 +2,7 @@ from typing import List
 from collections import defaultdict
 
 import numpy as np
-from scipy.spatial import KDTree
+from scipy.spatial import cKDTree
 
 from . import pointcloud
 
@@ -21,7 +21,7 @@ def pass_through_filter(pc: pointcloud.PointCloud, min_lim: float, max_lim: floa
 
 
 def radius_outlier_removal(pc: pointcloud.PointCloud, radius: float, neighbor_counts: int) -> pointcloud.PointCloud:
-    tree = KDTree(pc.points)
+    tree = cKDTree(pc.points)
     mask = [len(tree.query_ball_point(p, radius)) > neighbor_counts for p in pc.points]
     return pointcloud.PointCloud(pc._points[mask, :], pc._field)
 
@@ -29,7 +29,7 @@ def radius_outlier_removal(pc: pointcloud.PointCloud, radius: float, neighbor_co
 def statistical_outlier_removal(
     pc: pointcloud.PointCloud, k_neighbors: int, std_ratio: float
 ) -> pointcloud.PointCloud:
-    tree = KDTree(pc.points)
+    tree = cKDTree(pc.points)
     dd, ii = tree.query(pc.points, k_neighbors)
     avg_d = dd.mean(axis=1)
     std_d = dd.std(axis=1)
