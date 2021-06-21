@@ -12,6 +12,7 @@ import p3dpy as pp
 import argparse
 parser = argparse.ArgumentParser(description='Visualization client example.')
 parser.add_argument('--host', type=str, default='localhost', help="Host address.")
+parser.add_argument('--scale', type=float, default=1000, help="Depth scale.")
 args = parser.parse_args()
 
 colors = [[0.0, 1.0, 0.0], [1.0, 0.0, 0.0], [1.0, 1.0, 0.0], [1.0, 0.0, 1.0], [0.5, 0.5, 1.0]]
@@ -117,7 +118,7 @@ if __name__ == "__main__":
 
             depth_image = np.array(aligned_depth_frame.get_data())
             color_image = np.asarray(color_frame.get_data())
-            rgbd_image = pp.RGBDImage(depth_image, color_image)
+            rgbd_image = pp.RGBDImage(depth_image, color_image, args.scale)
             pcd = rgbd_image.pointcloud(intrinsic)
             pcd.transform_(flip_transform)
             pcd = pp.filter.voxel_grid_filter(pcd, cur_params["voxel_size"])
