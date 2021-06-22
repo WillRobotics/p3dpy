@@ -149,7 +149,7 @@ if __name__ == "__main__":
             plane_pc = pp.PointCloud(plane_pts, pp.pointcloud.PointXYZRGBField())
             res = client.post_pointcloud(plane_pc, "Plane")
             plane_area = calc_convexhull_area(plane_pts[:, :2])
-            client.add_log(f"Plane Area: {plane_area:.3f}")
+            client.add_log(f"Plane Area: {plane_area:.3f}", True)
             send_data = set()
             for i in range(n_clusters):
                 if len(not_plane_pts[masks[i], :]) < cur_params["point_size_thresh"]:
@@ -171,7 +171,7 @@ if __name__ == "__main__":
                 if name in send_data:
                     continue
                 obj_area = calc_convexhull_area(not_plane_pts[masks[i], :2])
-                client.add_log(f"{name} Area: {obj_area:.3f}", False)
+                client.add_log(f"{name} Area: {obj_area:.3f}")
                 not_plane_pc.set_uniform_color(colors[min_idx % len(colors)])
                 res = client.post_pointcloud(not_plane_pc, name)
                 send_data.add(name)
