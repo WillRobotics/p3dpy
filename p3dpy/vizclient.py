@@ -55,16 +55,10 @@ class VizClient(object):
         )
         return response.json()
 
-    def add_log(self, message: str) -> dict:
+    def add_log(self, message: str, clear: bool = True) -> dict:
         response = requests.post(
-            urllib.parse.urljoin(self._url, "log/store"),
-            json={"log": "<p>" + message + "</p>"},
-        )
-        return response.json()
-
-    def clear_log(self) -> dict:
-        response = requests.delete(
             urllib.parse.urljoin(self._url, "log"),
+            json={"log": "<p>" + message + "</p>", "clear": clear},
         )
         return response.json()
 

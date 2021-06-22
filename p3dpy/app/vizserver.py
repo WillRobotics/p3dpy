@@ -122,18 +122,16 @@ async def delete_all_pointcloud():
     return {"res": "ok"}
 
 
-@app.post("/log/store")
+@app.post("/log")
 async def store_log(body: dict = Body(...)):
     if isinstance(body["log"], str):
-        stored_data["log"] += body["log"]
+        stored_data["clearLog"] = body["clear"]
+        if body["clear"]:
+            stored_data["log"] = body["log"]
+        else:
+            stored_data["log"] += body["log"]
         return {"res": "ok"}
     return {"res": "error"}
-
-
-@app.delete("/log")
-async def delete_log():
-    stored_data["clearLog"] = True
-    return {"res": "ok"}
 
 
 @app.post("/parameters/store")
