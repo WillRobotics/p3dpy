@@ -164,11 +164,11 @@ if __name__ == "__main__":
                 except:
                     print("Fail to compute features.")
             idxs = assigner.register_and_assign(clusters)
-            for idx in idxs:
-                obj_area = calc_convexhull_area(assigner.db[idx].pointcloud._points[:, :2])
-                client.add_log(f"{name} Area: {obj_area:.3f}")
-                assigner.db[idx].pointcloud.set_uniform_color(colors[idx % len(colors)])
-                res = client.post_pointcloud(assigner.db[idx].pointcloud, assigner.db[idx].name)
+            for i, idx in enumerate(idxs):
+                obj_area = calc_convexhull_area(clusters[i].pointcloud._points[:, :2])
+                client.add_log(f"{assigner.db[idx].name} Area: {obj_area:.3f}")
+                clusters[i].pointcloud.set_uniform_color(colors[idx % len(colors)])
+                res = client.post_pointcloud(clusters[i].pointcloud, assigner.db[idx].name)
                 print(res)
 
     finally:
