@@ -95,7 +95,8 @@ if __name__ == "__main__":
     pcd = pp.PointCloud()
     flip_transform = np.array([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]])
     client = pp.VizClient(host=args.host)
-    features = {}
+    dist_fn = lambda c1, c2: pp.registration.compute_rmse(c1.feature, c2.feature, 50)
+    assigner = pp.assignment.ClusterAssigner(dist_fn, 0.2)
 
     try:
         while True:
@@ -150,31 +151,24 @@ if __name__ == "__main__":
             res = client.post_pointcloud(plane_pc, "Plane")
             plane_area = calc_convexhull_area(plane_pts[:, :2])
             client.add_log(f"Plane Area: {plane_area:.3f}", True)
-            send_data = set()
+            clusters = []
             for i in range(n_clusters):
                 if len(not_plane_pts[masks[i], :]) < cur_params["point_size_thresh"]:
                     continue
                 not_plane_pc = pp.PointCloud(not_plane_pts[masks[i], :], pp.pointcloud.PointXYZRGBField())
                 name = randomname(10)
-                min_idx = i
                 try:
                     not_plane_pc.compute_normals(0.05)
                     feature = pp.feature.compute_shot_descriptors(not_plane_pc, 0.05)
-                    rmses = [pp.registration.compute_rmse(feature, v, 50) for v in features.values()]
-                    if len(features) == 0 or min(rmses) > 0.2:
-                        features[name] = feature
-                    else:
-                        min_idx = np.argmin(rmses)
-                        name = list(features.keys())[min_idx]
+                    clusters.append(pp.assignment.ClusterAssigner.Cluster(name, not_plane_pc, feature))
                 except:
                     print("Fail to compute features.")
-                if name in send_data:
-                    continue
-                obj_area = calc_convexhull_area(not_plane_pts[masks[i], :2])
+            idxs = assigner.register_and_assign(clusters)
+            for idx in idxs:
+                obj_area = calc_convexhull_area(assigner.db[idx].pointcloud._points[:, :2])
                 client.add_log(f"{name} Area: {obj_area:.3f}")
-                not_plane_pc.set_uniform_color(colors[min_idx % len(colors)])
-                res = client.post_pointcloud(not_plane_pc, name)
-                send_data.add(name)
+                assigner.db[idx].pointcloud.set_uniform_color(colors[idx % len(colors)])
+                res = client.post_pointcloud(assigner.db[idx].pointcloud, assigner.db[idx].name)
                 print(res)
 
     finally:
