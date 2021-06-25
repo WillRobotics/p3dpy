@@ -71,8 +71,11 @@ if __name__ == "__main__":
     pcd = pp.PointCloud()
     flip_transform = np.array([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]])
     client = pp.VizClient(host=args.host)
-    outfh = h5py.File("sensor_data.h5", "w")
-    grp = outfh.create_group("pointclouds")
+    outfh = h5py.File("sensor_data.h5", "a")
+    if "pointclouds" in outfh:
+        grp = outfh["pointclouds"]
+    else:
+        grp = outfh.create_group("pointclouds")
 
     try:
         while True:
