@@ -46,6 +46,11 @@ def voxel_grid_filter(pc: pointcloud.PointCloud, voxel_size: float) -> pointclou
         Input point cloud.
     voxel_size: float
         The length of one side of the voxel.
+
+    Returns
+    -------
+    pointcloud.PointCloud
+        Voxel-averaged point cloud.
     """
     class SumPoints:
         def __init__(self, dim: int = pc._points.shape[1]):

@@ -30,6 +30,20 @@ class RGBDImage(object):
         return self._color_img
 
     def pointcloud(self, intrinsic: np.ndarray, extrinsic: np.ndarray = np.identity(4)) -> pointcloud.PointCloud:
+        """Pointcloud from RGBD Image.
+
+        Parameters
+        ----------
+        intrinsic: np.ndarray
+            Camera intrinsic parameters.
+        extrinsic: np.ndarray
+            Camera extrinsic parameters.
+
+        Returns
+        -------
+        pointcloud.PointCloud
+            Pointcloud.
+        """
         field = pointcloud.PointXYZRGBField()
         pc = pointcloud.PointCloud(np.zeros(list(self._depth_img.shape) + [field.size()]), field)
         pc._points[:, :, field.Z] = self._depth_img

@@ -185,6 +185,13 @@ class PointCloud(object):
             self._points = np.c_[self._points, np.tile(color, (len(self), 1))]
 
     def compute_normals(self, radius: float) -> None:
+        """Compute normal vectors.
+
+        Parameters
+        ----------
+        radius: float
+            Radius of the surrounding points used for normal calculation.
+        """
         tree = cKDTree(self.points)
         normals = [np.linalg.eigh(np.cov(self.points[tree.query_ball_point(p, radius), :].T))[1][:, 0] for p in self.points]
         if self.has_field("normal"):

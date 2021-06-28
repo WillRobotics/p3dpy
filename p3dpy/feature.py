@@ -44,8 +44,25 @@ def compute_shot_descriptors(
     radius: float,
     min_neighbors: int = 5,
     n_grid_sectors: int = 32,
-    max_angular_sectors: int = 32
 ) -> np.ndarray:
+    """Compute shot descriptors
+
+    Parameters
+    ----------
+    pc: pointcloud.PointCloud
+        Input point cloud.
+    radius: float
+        Radius for calculating the feature value of a point.
+    min_neighbors: int
+        Number of neighbors needed to compute the features.
+    n_grid_sectors: int
+        Number of sectors.
+
+    Returns
+    -------
+    np.ndarray
+        Shot descriptors.
+    """
     if not pc.has_field("normal"):
         raise ValueError("Given pointcoud doesn't have normals.")
 
@@ -141,11 +158,11 @@ def compute_shot_descriptors(
                 azimuth_dist = max(-0.5, min(azimuth_dist, 0.5))
                 if azimuth_dist > 0:
                     init_weight += 1 - azimuth_dist
-                    interp_index = (desc_index + 4) % max_angular_sectors
+                    interp_index = (desc_index + 4) % n_grid_sectors
                     shots[interp_index * (n_bins + 1) + step_index] += azimuth_dist
                 else:
                     init_weight += 1 + azimuth_dist
-                    interp_index = (desc_index - 4 + max_angular_sectors) % max_angular_sectors
+                    interp_index = (desc_index - 4 + n_grid_sectors) % n_grid_sectors
                     shots[interp_index * (n_bins + 1) + step_index] -= azimuth_dist
             shots[volume_index + step_index] += init_weight
             shots /= np.linalg.norm(shots)
