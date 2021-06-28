@@ -38,8 +38,6 @@ class ClusterAssigner:
                     col_ind[j] = len(self._db)
                     self._db.append(clusters[j])
             return col_ind
-        elif len(self._db) == 0:
+        else:
             self._db.extend(clusters)
             return [i for i in range(len(clusters))]
-        else:
-            return []
