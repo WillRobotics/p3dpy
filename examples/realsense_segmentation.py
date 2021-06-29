@@ -138,9 +138,13 @@ if __name__ == "__main__":
             # Draw results
             plane_pts[:, 3:] = [0.0, 0.0, 1.0]
             plane_pc = pp.PointCloud(plane_pts, pp.pointcloud.PointXYZRGBField())
-            res = client.post_pointcloud(plane_pc, "Plane")
+            send_pc = []
+            send_names = []
+            send_log = ""
+            send_pc.append(plane_pc)
+            send_names.append("Plane")
             plane_area = calc_convexhull_area(plane_pts[:, :2])
-            client.add_log(f"Plane Area: {plane_area:.3f}", True)
+            send_log += f"Plane Area: {plane_area:.3f}\n"
             clusters = []
             for i in range(n_clusters):
                 if len(not_plane_pts[masks[i], :]) < cur_params["point_size_thresh"]:
@@ -156,10 +160,13 @@ if __name__ == "__main__":
             idxs = assigner.register_and_assign(clusters)
             for i, idx in enumerate(idxs):
                 obj_area = calc_convexhull_area(clusters[i].pointcloud._points[:, :2])
-                client.add_log(f"{assigner.db[idx].name} Area: {obj_area:.3f}")
+                send_log += f"{assigner.db[idx].name} Area: {obj_area:.3f}\n"
                 clusters[i].pointcloud.set_uniform_color(colors[idx % len(colors)])
-                res = client.post_pointcloud(clusters[i].pointcloud, assigner.db[idx].name)
-                print(res)
+                send_pc.append(clusters[i].pointcloud)
+                send_names.append(assigner.db[idx].name)
+            client.add_log(send_log, True)
+            res = client.post_pointcloud_array(send_pc, send_names, True)
+            print(res)
 
     finally:
         pipeline.stop()

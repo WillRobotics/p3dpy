@@ -1,3 +1,4 @@
+from typing import List, Tuple
 import base64
 import urllib.parse
 
@@ -25,10 +26,17 @@ class VizClient(object):
         )
         return response.json()
 
-    def rename_pointcloud(self, curr_name: str, new_name: str) -> dict:
+    def post_pointcloud_array(self, pointclouds: List[PointCloud], names: List[str] = [], clear: bool = False) -> dict:
+        pointcloud_arr = []
+        for i, pc in enumerate(pointclouds):
+            points = pc.points.astype(np.float32).tobytes("C")
+            colors = pc.colors
+            colors = (colors * 255).astype(np.uint8).tobytes("C") if colors is not None else (np.ones((len(pointcloud), 3), dtype=np.uint8) * 255).tobytes("C")
+            name = id(pc) if len(names) == 0 else names[i]
+            pointcloud_arr.append({"name": name, "points": self._encode(points), "colors": self._encode(colors)})
         response = requests.post(
-            urllib.parse.urljoin(self._url, "pointcloud/rename"),
-            json={"name": curr_name, "new_name": new_name},
+            urllib.parse.urljoin(self._url, "pointcloud/store_array"),
+            json={"array": pointcloud_arr, "clear": clear},
         )
         return response.json()
 
@@ -49,13 +57,8 @@ class VizClient(object):
         pointcloud.points_ = np.array(points[0])
         return pointcloud
 
-    def delete_all_pointcloud(self) -> dict:
-        response = requests.delete(
-            urllib.parse.urljoin(self._url, "pointcloud/all"),
-        )
-        return response.json()
-
     def add_log(self, message: str, clear: bool = False) -> dict:
+        message = message.replace("\n", "<br/>")
         response = requests.post(
             urllib.parse.urljoin(self._url, "log"),
             json={"log": "<p>" + message + "</p>", "clear": clear},

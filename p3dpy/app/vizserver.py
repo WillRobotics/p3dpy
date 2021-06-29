@@ -21,6 +21,11 @@ class PointCloudData(BaseModel):
     points: str
     colors: str
 
+class PointCloudDataArray(BaseModel):
+    array: List[PointCloudData]
+    clear: bool
+
+
 def _encode(s: str) -> str:
     return base64.b64encode(s).decode("utf-8")
 
@@ -98,12 +103,19 @@ async def store_data(data: PointCloudData):
     return {"res": "ok", "name": data.name}
 
 
-@app.post("/pointcloud/rename")
-async def rename_data(body: dict = Body(...)):
-    if body["name"] in stored_data["pointcloud"]:
-        stored_data["pointcloud"][body["new_name"]] = stored_data["pointcloud"][body["name"]]
-        del stored_data["pointcloud"][body["name"]]
-    return {"res": "ok", "name": body["new_name"]}
+@app.post("/pointcloud/store_array")
+async def store_data_array(data: PointCloudDataArray):
+    if data.clear:
+        stored_data["pointcloud"] = {}
+    names = []
+    for d in data.array:
+        points = np.frombuffer(_decode(d.points), dtype=np.float32)
+        points = points.reshape((-1, 3))
+        colors = np.frombuffer(_decode(d.colors), dtype=np.uint8)
+        colors = colors.reshape((-1, 3))
+        stored_data["pointcloud"][d.name] = [points, colors]
+        names.append(d.name)
+    return {"res": "ok", "names": names}
 
 
 @app.put("/pointcloud/update/{name}")
@@ -114,12 +126,6 @@ async def update_data(name: str, data: PointCloudData):
     colors = colors.reshape((-1, 3))
     stored_data["pointcloud"][data.name] = [points, colors]
     return {"res": "ok", "name": data.name}
-
-
-@app.delete("/pointcloud/all")
-async def delete_all_pointcloud():
-    stored_data["pointcloud"] = {}
-    return {"res": "ok"}
 
 
 @app.post("/log")
