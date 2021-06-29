@@ -1,5 +1,7 @@
 # p3dpy
 
+[![PyPI version](https://badge.fury.io/py/p3dpy.svg)](https://badge.fury.io/py/p3dpy)
+
 Numpy based simple pointcloud tools.
 
 ## Core features
