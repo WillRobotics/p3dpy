@@ -52,7 +52,7 @@ def icp_registration(
     for _ in range(max_itr):
         dd, ii = target_tree.query(cur_pc.points, k=1, distance_upper_bound=dist_thresh)
         ii = ii[~np.isinf(dd)]
-        tr = _kabsh(cur_pc.points, target, ii)
+        tr = _kabsh(cur_pc, target, ii)
         trans = np.dot(tr, trans)
         cur_pc.transform_(tr)
         tmp_rmse = _compute_rmse(cur_pc.points, target_tree)
