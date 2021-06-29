@@ -23,7 +23,7 @@ async def _spawn_vizserver(host: str = "127.0.0.1", port: int = 8000, timeout: i
         if len(v) < 3:
             raise ValueError("Parameter value must be 3 or 4 elements tuple.")
         elif len(v) == 3:
-            params[k] = tuple(list(v) + [(v[2] - v[1]) / 10])
+            params[k] = tuple(list(v) + [(v[2] - v[1]) / 100])
 
     _sp._process = await asyncio.create_subprocess_exec(*["vizserver", "--host", host, "--port", str(port), "--params", json.dumps(params)],
                                                         stdout=PIPE, stderr=STDOUT)
