@@ -42,4 +42,4 @@ pp.vizloop()
 ```
 
 ## Visualization
-![viewer](https://raw.githubusercontent.com/WillRobotics/p3dpy/master/assets/viewer.png)
+![demo](https://raw.githubusercontent.com/WillRobotics/p3dpy/master/assets/p3dpy_demo.gif)
