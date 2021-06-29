@@ -124,16 +124,6 @@ if __name__ == "__main__":
             pcd.transform_(flip_transform)
             pcd = pp.filter.voxel_grid_filter(pcd, cur_params["voxel_size"])
             plane, mask = pp.segmentation.segmentation_plane(pcd, dist_thresh=cur_params["dist_thresh"])
-            axis = np.array([-np.sign(plane[0]) * plane[1], np.abs(plane[0]), 0.0])
-            norm_axis = np.linalg.norm(axis)
-            if norm_axis == 0:
-                print("Cannot find a plane.")
-                continue
-            axis /= norm_axis
-            angle = np.arccos(plane[2] / np.linalg.norm(plane[:3]))
-            trans = np.identity(4)
-            trans[:3, :3] = t3d.axangles.axangle2mat(axis, angle)
-            pcd.transform_(trans.T)
 
             # Divide a plane and objects
             plane_pts = pcd._points[mask, :]
