@@ -21,6 +21,7 @@ class PointXYZField(FieldBase):
     X = 0
     Y = 1
     Z = 2
+
     def __init__(self) -> None:
         self.slices = {"point": slice(3)}
 
@@ -32,6 +33,7 @@ class PointXYZRGBField(PointXYZField):
     R = 3
     G = 4
     B = 5
+
     def __init__(self) -> None:
         self.slices = {"point": slice(3), "color": slice(3, 6)}
 
@@ -44,6 +46,7 @@ class PointXYZRGBAField(PointXYZField):
     G = 4
     B = 5
     A = 6
+
     def __init__(self) -> None:
         self.slices = {"point": slice(3), "color": slice(3, 6), "alpha": slice(6, 7)}
 
@@ -55,6 +58,7 @@ class PointXYZNormalField(PointXYZField):
     NX = 3
     NY = 4
     NZ = 5
+
     def __init__(self) -> None:
         self.slices = {"point": slice(3), "normal": slice(3, 6)}
 
@@ -66,6 +70,7 @@ class PointXYZRGBNormalField(PointXYZRGBField):
     NX = 6
     NY = 7
     NZ = 8
+
     def __init__(self) -> None:
         self.slices = {"point": slice(3), "color": slice(3, 6), "normal": slice(6, 9)}
 
@@ -196,7 +201,9 @@ class PointCloud(object):
             Radius of the surrounding points used for normal calculation.
         """
         tree = cKDTree(self.points)
-        normals = [np.linalg.eigh(np.cov(self.points[tree.query_ball_point(p, radius), :].T))[1][:, 0] for p in self.points]
+        normals = [
+            np.linalg.eigh(np.cov(self.points[tree.query_ball_point(p, radius), :].T))[1][:, 0] for p in self.points
+        ]
         if self.has_field("normal"):
             self._points[:, self._field.slices["normal"]] = normals
         else:

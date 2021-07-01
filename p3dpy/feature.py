@@ -134,8 +134,7 @@ def compute_shot_descriptors(
                     shots[(desc_index + 2) * (n_bins + 1) + step_index] += radius_dist
             inclination_cos = max(min(z_lrf / dist, 1.0), -1.0)
             inclination = np.arccos(inclination_cos)
-            if inclination > PST_RAD_90 or\
-               (abs(inclination - PST_RAD_90) < 1e-30 and z_lrf <= 0):
+            if inclination > PST_RAD_90 or (abs(inclination - PST_RAD_90) < 1e-30 and z_lrf <= 0):
                 inclination_dist = (inclination - PST_RAD_135) / PST_RAD_90
                 if inclination > PST_RAD_135:
                     init_weight += 1 - inclination_dist

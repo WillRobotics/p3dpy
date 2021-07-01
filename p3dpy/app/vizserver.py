@@ -21,6 +21,7 @@ class PointCloudData(BaseModel):
     points: str
     colors: str
 
+
 class PointCloudDataArray(BaseModel):
     array: List[PointCloudData]
     clear: bool
@@ -28,6 +29,7 @@ class PointCloudDataArray(BaseModel):
 
 def _encode(s: bytes) -> str:
     return base64.b64encode(s).decode("utf-8")
+
 
 def _decode(s: str) -> bytes:
     return base64.b64decode(s.encode())
@@ -76,9 +78,12 @@ async def info_endpoint(ws: WebSocket):
     try:
         while True:
             await ws.send_json(
-                {"keys": list(stored_data["pointcloud"].keys()),
-                 "log": stored_data["log"],
-                 "clearLog": stored_data["clearLog"]})
+                {
+                    "keys": list(stored_data["pointcloud"].keys()),
+                    "log": stored_data["log"],
+                    "clearLog": stored_data["clearLog"],
+                }
+            )
             stored_data["log"] = ""
             stored_data["clearLog"] = False
             await asyncio.sleep(1)

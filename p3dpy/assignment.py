@@ -9,13 +9,11 @@ from . import pointcloud
 
 
 class ClusterAssigner:
-
     class Cluster:
         def __init__(self, name: str, pointcloud: pointcloud.PointCloud, feature: np.ndarray) -> None:
             self.name = name
             self.pointcloud = pointcloud
             self.feature = feature
-
 
     def __init__(self, dist_fn: Callable, dist_thresh: float) -> None:
         self._db: Deque[Any] = deque()

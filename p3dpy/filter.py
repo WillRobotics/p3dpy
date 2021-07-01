@@ -15,7 +15,9 @@ def random_sampling(pc: pointcloud.PointCloud, n_sample: int) -> pointcloud.Poin
     return pointcloud.PointCloud(pc._points[np.random.randint(len(pc), size=n_sample), :], field=pc._field)
 
 
-def pass_through_filter(pc: pointcloud.PointCloud, min_lim: float, max_lim: float, axis: int = 0) -> pointcloud.PointCloud:
+def pass_through_filter(
+    pc: pointcloud.PointCloud, min_lim: float, max_lim: float, axis: int = 0
+) -> pointcloud.PointCloud:
     axis_pc = pc.points[:, axis]
     return pointcloud.PointCloud(pc._points[(axis_pc >= min_lim) & (axis_pc <= max_lim), :], field=pc._field)
 
@@ -52,6 +54,7 @@ def voxel_grid_filter(pc: pointcloud.PointCloud, voxel_size: float) -> pointclou
     pointcloud.PointCloud
         Voxel-averaged point cloud.
     """
+
     class SumPoints:
         def __init__(self, dim: int = pc._points.shape[1]):
             self._num_points = 0
@@ -66,9 +69,13 @@ def voxel_grid_filter(pc: pointcloud.PointCloud, voxel_size: float) -> pointclou
 
     min_bound = pc.points.min(axis=0) - voxel_size * 0.5
     voxel_dic: DefaultDict[Tuple[int, int, int], SumPoints] = defaultdict(SumPoints)
+
     def func(i):
-        coord = tuple(np.floor((pc._points[i, pc._field.slices["point"]] - min_bound) / voxel_size).astype(np.int32).tolist())
+        coord = tuple(
+            np.floor((pc._points[i, pc._field.slices["point"]] - min_bound) / voxel_size).astype(np.int32).tolist()
+        )
         voxel_dic[coord].add_point(pc._points[i])
+
     func_v = np.frompyfunc(func, 1, 0)
     func_v(np.arange(len(pc)))
     return pointcloud.PointCloud([v.get_mean() for v in voxel_dic.values()], pc._field)

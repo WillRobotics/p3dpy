@@ -8,9 +8,11 @@ import webbrowser
 
 class ServerProcess:
     _process = None
+
     def __del__(self):
         if self._process is not None:
             os.kill(self._process.pid, signal.SIGTERM)
+
 
 _sp = ServerProcess()
 
@@ -25,8 +27,9 @@ async def _spawn_vizserver(host: str = "127.0.0.1", port: int = 8000, timeout: i
         elif len(v) == 3:
             params[k] = tuple(list(v) + [(v[2] - v[1]) / 100])
 
-    _sp._process = await asyncio.create_subprocess_exec(*["vizserver", "--host", host, "--port", str(port), "--params", json.dumps(params)],
-                                                        stdout=PIPE, stderr=STDOUT)
+    _sp._process = await asyncio.create_subprocess_exec(
+        *["vizserver", "--host", host, "--port", str(port), "--params", json.dumps(params)], stdout=PIPE, stderr=STDOUT
+    )
     while True:
         try:
             line = await asyncio.wait_for(_sp._process.stdout.readline(), timeout)

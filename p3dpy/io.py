@@ -161,5 +161,7 @@ def load_ply(fd: Union[TextIO, str]) -> pointcloud.PointCloud:
     if isinstance(fd, str):
         fd = open(fd, "rb")
     plydata = PlyData.read(fd)
-    points = plydata['vertex'][["x", "y", "z"]]
-    return pointcloud.PointCloud(points=points.view("<f4").reshape(points.shape + (-1,)), field=pointcloud.PointXYZField())
+    points = plydata["vertex"][["x", "y", "z"]]
+    return pointcloud.PointCloud(
+        points=points.view("<f4").reshape(points.shape + (-1,)), field=pointcloud.PointXYZField()
+    )
