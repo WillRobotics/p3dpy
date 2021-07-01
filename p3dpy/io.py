@@ -1,4 +1,4 @@
-from typing import TextIO, Tuple, Union
+from typing import BinaryIO, Optional, TextIO, Tuple, Union
 import struct
 import numpy as np
 import stl
@@ -48,12 +48,12 @@ def _parse_pcd_header(lines: list) -> Tuple[dict, str]:
     return config, data_type
 
 
-def load_pcd(fd: Union[TextIO, str]) -> pointcloud.PointCloud:
+def load_pcd(fd: Union[BinaryIO, TextIO, str]) -> pointcloud.PointCloud:
     """Load PCD file format
 
     Parameters
     ----------
-    fd: TextIO or str
+    fd: BinaryIO, TextIO or str
         Input file name or StringIO data type.
     """
     if isinstance(fd, str):
@@ -76,7 +76,7 @@ def load_pcd(fd: Union[TextIO, str]) -> pointcloud.PointCloud:
     if "normal_x" in config["FIELDS"] and "normal_y" in config["FIELDS"] and "normal_z" in config["FIELDS"]:
         has_normal = True
 
-    field = None
+    field: Optional[pointcloud.FieldBase] = None
     if has_point and has_color and has_normal:
         field = pointcloud.PointXYZRGBNormalField()
     elif has_point and has_color:
@@ -150,14 +150,14 @@ def load_pcd(fd: Union[TextIO, str]) -> pointcloud.PointCloud:
     return pc
 
 
-def load_stl(fd: Union[TextIO, str], scale: float = 1.0) -> pointcloud.PointCloud:
+def load_stl(fd: Union[BinaryIO, TextIO, str], scale: float = 1.0) -> pointcloud.PointCloud:
     if isinstance(fd, str):
         fd = open(fd, "rb")
     mesh = stl.mesh.Mesh.from_file("", fh=fd)
     return pointcloud.PointCloud(points=mesh.points.reshape((-1, 3)) * scale, field=pointcloud.PointXYZField())
 
 
-def load_ply(fd: Union[TextIO, str]) -> pointcloud.PointCloud:
+def load_ply(fd: Union[BinaryIO, TextIO, str]) -> pointcloud.PointCloud:
     if isinstance(fd, str):
         fd = open(fd, "rb")
     plydata = PlyData.read(fd)
