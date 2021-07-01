@@ -92,7 +92,7 @@ if __name__ == "__main__":
             rgbd_image = pp.RGBDImage(depth_image, color_image, args.scale)
             pcd = rgbd_image.pointcloud(intrinsic)
             pcd.transform_(flip_transform)
-            pcd = pp.filter.voxel_grid_filter(pcd, 0.01)
+            pcd = pp.filter.random_sampling(pcd, 3000)
             res = client.post_pointcloud(pcd, 'test')
             print(res)
 
