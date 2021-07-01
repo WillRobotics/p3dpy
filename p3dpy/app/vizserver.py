@@ -26,10 +26,10 @@ class PointCloudDataArray(BaseModel):
     clear: bool
 
 
-def _encode(s: str) -> str:
+def _encode(s: bytes) -> str:
     return base64.b64encode(s).decode("utf-8")
 
-def _decode(s: str) -> str:
+def _decode(s: str) -> bytes:
     return base64.b64decode(s.encode())
 
 
@@ -56,7 +56,7 @@ async def websocket_endpoint(ws: WebSocket):
     try:
         while True:
             data = await ws.receive_json()
-            send_data = [[], []]
+            send_data: List[List[np.ndarray]] = [[], []]
             for d in data:
                 if d in stored_data["pointcloud"]:
                     send_data[0].append(stored_data["pointcloud"][d][0])

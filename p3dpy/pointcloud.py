@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Optional, Tuple
+from typing import Any, Dict, Optional, Tuple, Union
 import copy
 
 import numpy as np
@@ -8,7 +8,7 @@ from scipy.spatial import cKDTree
 
 class FieldBase(object):
     def __init__(self) -> None:
-        self.slices = {}
+        self.slices: Dict[str, slice] = {}
 
     def size(self) -> int:
         return 0
@@ -80,9 +80,12 @@ class DynamicField(FieldBase):
         else:
             self.slices = init_field.slices
 
-    def add_field(self, name: str, n_elem: slice) -> None:
+    def add_field(self, name: str, n_elem: Union[int, slice]) -> None:
         size = self.size()
-        self.slices.update({name: slice(size, size + n_elem)})
+        if isinstance(n_elem, int):
+            self.slices.update({name: slice(size, size + n_elem)})
+        else:
+            self.slices.update({name: n_elem})
 
     def size(self) -> int:
         return max([s.stop for s in self.slices.values()])
@@ -121,13 +124,13 @@ class PointCloud(object):
             self._points = np.array(self._points)
         return self._points.mean(axis=0)
 
-    def min_point(self) -> np.ndarray:
+    def min_point(self) -> Union[np.number[Any], np.ndarray]:
         return self.points.min(axis=0)
 
-    def max_point(self) -> np.ndarray:
+    def max_point(self) -> Union[np.number[Any], np.ndarray]:
         return self.points.max(axis=0)
 
-    def bounding_box(self) -> Tuple[np.ndarray, np.ndarray]:
+    def bounding_box(self) -> Tuple[Union[np.number[Any], np.ndarray], Union[np.number[Any], np.ndarray]]:
         return self.min_point(), self.max_point()
 
     @property

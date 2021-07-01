@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Union
 import numpy as np
 from . import pointcloud
 
@@ -9,7 +9,7 @@ class RANSACResult(object):
         self._inlier_rmse = inlier_rmse
 
 
-def _compute_plane(pc: pointcloud.PointCloud, inliers: List[int]) -> np.ndarray:
+def _compute_plane(pc: pointcloud.PointCloud, inliers: Union[np.ndarray, List[int]]) -> np.ndarray:
     cands = pc.points[inliers, :]
     if len(cands) == 3:
         e0 = cands[1] - cands[0]

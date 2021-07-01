@@ -8,7 +8,7 @@ from . import pointcloud
 def _kabsh(
     source: pointcloud.PointCloud,
     target: pointcloud.PointCloud,
-    corres: List[int],
+    corres: np.ndarray,
 ) -> np.ndarray:
     src_avg = source.points.mean(axis=0)
     trg_avg = target.points[corres, :].mean(axis=0)

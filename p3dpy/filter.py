@@ -1,4 +1,4 @@
-from typing import List
+from typing import DefaultDict, Tuple
 from collections import defaultdict
 
 import numpy as np
@@ -65,7 +65,7 @@ def voxel_grid_filter(pc: pointcloud.PointCloud, voxel_size: float) -> pointclou
             return self._point / self._num_points
 
     min_bound = pc.points.min(axis=0) - voxel_size * 0.5
-    voxel_dic = defaultdict(SumPoints)
+    voxel_dic: DefaultDict[Tuple[int, int, int], SumPoints] = defaultdict(SumPoints)
     def func(i):
         coord = tuple(np.floor((pc._points[i, pc._field.slices["point"]] - min_bound) / voxel_size).astype(np.int32).tolist())
         voxel_dic[coord].add_point(pc._points[i])

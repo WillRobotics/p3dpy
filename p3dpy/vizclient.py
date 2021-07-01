@@ -12,14 +12,14 @@ class VizClient(object):
     def __init__(self, host: str = "localhost", port: int = 8000) -> None:
         self._url = "http://%s:%d" % (host, port)
 
-    def _encode(self, s: str) -> str:
+    def _encode(self, s: bytes) -> str:
         return base64.b64encode(s).decode("utf-8")
 
     def post_pointcloud(self, pointcloud: PointCloud, name: str = "") -> dict:
         points = pointcloud.points.astype(np.float32).tobytes("C")
         colors = pointcloud.colors
         colors = (colors * 255).astype(np.uint8).tobytes("C") if colors is not None else (np.ones((len(pointcloud), 3), dtype=np.uint8) * 255).tobytes("C")
-        name = id(pointcloud) if name == "" else name
+        name = str(id(pointcloud)) if name == "" else name
         response = requests.post(
             urllib.parse.urljoin(self._url, "pointcloud/store"),
             json={"name": name, "points": self._encode(points), "colors": self._encode(colors)},
@@ -54,7 +54,7 @@ class VizClient(object):
         response = requests.get(urllib.parse.urljoin(self._url, f"pointcloud/{name}"))
         points = response.json()
         pointcloud = PointCloud()
-        pointcloud.points_ = np.array(points[0])
+        pointcloud._points = np.array(points[0])
         return pointcloud
 
     def add_log(self, message: str, clear: bool = False) -> dict:

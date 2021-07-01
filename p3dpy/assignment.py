@@ -1,6 +1,7 @@
 from typing import Callable, Deque, List, Optional
 from collections import deque
 
+from typing import Any, Deque
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
@@ -17,7 +18,7 @@ class ClusterAssigner:
 
 
     def __init__(self, dist_fn: Callable, dist_thresh: float) -> None:
-        self._db = deque()
+        self._db: Deque[Any] = deque()
         self._dist_fn = dist_fn
         self._dist_thresh = dist_thresh
 
