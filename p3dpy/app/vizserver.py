@@ -2,7 +2,7 @@
 import os
 import base64
 import numpy as np
-from typing import List
+from typing import Any, Dict, List
 import asyncio
 from fastapi import Body, FastAPI, Request, WebSocket
 from fastapi.responses import HTMLResponse
@@ -36,8 +36,8 @@ def _decode(s: str) -> bytes:
 
 
 app = FastAPI()
-stored_data = {"pointcloud": {}, "log": "", "clearLog": False}
-parameters = {"max_points": 500000, "gui_params": {}}
+stored_data: Dict[str, Any] = {"pointcloud": {}, "log": "", "clearLog": False}
+parameters: Dict[str, Any] = {"max_points": 500000, "gui_params": {}}
 
 app.mount(
     "/static",

@@ -17,10 +17,9 @@ class VizClient(object):
 
     def post_pointcloud(self, pointcloud: PointCloud, name: str = "") -> dict:
         points = pointcloud.points.astype(np.float32).tobytes("C")
-        colors = pointcloud.colors
         colors = (
-            (colors * 255).astype(np.uint8).tobytes("C")
-            if colors is not None
+            (pointcloud.colors * 255).astype(np.uint8).tobytes("C")
+            if pointcloud.colors is not None
             else (np.ones((len(pointcloud), 3), dtype=np.uint8) * 255).tobytes("C")
         )
         name = str(id(pointcloud)) if name == "" else name
@@ -34,10 +33,9 @@ class VizClient(object):
         pointcloud_arr = []
         for i, pc in enumerate(pointclouds):
             points = pc.points.astype(np.float32).tobytes("C")
-            colors = pc.colors
             colors = (
-                (colors * 255).astype(np.uint8).tobytes("C")
-                if colors is not None
+                (pc.colors * 255).astype(np.uint8).tobytes("C")
+                if pc.colors is not None
                 else (np.ones((len(pc), 3), dtype=np.uint8) * 255).tobytes("C")
             )
             name = id(pc) if len(names) == 0 else names[i]
@@ -50,10 +48,9 @@ class VizClient(object):
 
     def update_pointcloud(self, name: str, pointcloud: PointCloud) -> dict:
         points = pointcloud.points.astype(np.float32).tobytes("C")
-        colors = pointcloud.colors
         colors = (
-            (colors * 255).astype(np.uint8).tobytes("C")
-            if colors is not None
+            (pointcloud.colors * 255).astype(np.uint8).tobytes("C")
+            if pointcloud.colors is not None
             else (np.ones((len(pointcloud), 3), dtype=np.uint8) * 255).tobytes("C")
         )
         response = requests.put(

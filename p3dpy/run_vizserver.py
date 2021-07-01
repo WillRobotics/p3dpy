@@ -1,4 +1,5 @@
 import os
+from typing import Any, Optional
 import json
 import asyncio
 from asyncio.subprocess import PIPE, STDOUT
@@ -7,7 +8,7 @@ import webbrowser
 
 
 class ServerProcess:
-    _process = None
+    _process: Optional[Any] = None
 
     def __del__(self):
         if self._process is not None:
@@ -32,7 +33,8 @@ async def _spawn_vizserver(host: str = "127.0.0.1", port: int = 8000, timeout: i
     )
     while True:
         try:
-            line = await asyncio.wait_for(_sp._process.stdout.readline(), timeout)
+            if _sp._process.stdout is not None:
+                line = await asyncio.wait_for(_sp._process.stdout.readline(), timeout)
         except asyncio.TimeoutError:
             break
         else:
