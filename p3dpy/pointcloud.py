@@ -121,44 +121,38 @@ class PointCloud(object):
     def has_field(self, name: str) -> bool:
         return self._field.has_field(name)
 
-    def finalize(self) -> None:
-        self._points = np.array(self._points)
-
-    def mean(self) -> np.ndarray:
+    def finalize(self) -> PointCloud:
         if isinstance(self._points, list):
             self._points = np.array(self._points)
-        return self._points.mean(axis=0)
+        return self
+
+    def mean(self) -> np.ndarray:
+        return self.finalize()._points.mean(axis=0)
 
     def min_point(self) -> Union[np.number[Any], np.ndarray]:
-        return self.points.min(axis=0)
+        return self.finalize().points.min(axis=0)
 
     def max_point(self) -> Union[np.number[Any], np.ndarray]:
-        return self.points.max(axis=0)
+        return self.finalize().points.max(axis=0)
 
     def bounding_box(self) -> Tuple[Union[np.number[Any], np.ndarray], Union[np.number[Any], np.ndarray]]:
         return self.min_point(), self.max_point()
 
     @property
     def points(self) -> np.ndarray:
-        if isinstance(self._points, list):
-            self._points = np.array(self._points)
-        return self._points[:, self._field.slices["point"]]
+        return self.finalize()._points[:, self._field.slices["point"]]
 
     @property
     def normals(self) -> Optional[np.ndarray]:
-        if isinstance(self._points, list):
-            self._points = np.array(self._points)
         if self.has_field("normal"):
-            return self._points[:, self._field.slices["normal"]]
+            return self.finalize()._points[:, self._field.slices["normal"]]
         else:
             return None
 
     @property
     def colors(self) -> Optional[np.ndarray]:
-        if isinstance(self._points, list):
-            self._points = np.array(self._points)
         if self.has_field("color"):
-            return self._points[:, self._field.slices["color"]]
+            return self.finalize()._points[:, self._field.slices["color"]]
         else:
             return None
 
@@ -173,9 +167,7 @@ class PointCloud(object):
         self._points.extend(points)
 
     def transform_(self, trans: np.ndarray) -> None:
-        if isinstance(self._points, list):
-            self._points = np.array(self._points)
-        self._points[:, self._field.slices["point"]] = np.dot(self.points, trans[:3, :3].T) + trans[:3, 3]
+        self.finalize()._points[:, self._field.slices["point"]] = np.dot(self.points, trans[:3, :3].T) + trans[:3, 3]
         if self.has_field("normal"):
             self._points[:, self._field.slices["normal"]] = np.dot(self.normals, trans[:3, :3].T)
 
@@ -186,10 +178,11 @@ class PointCloud(object):
 
     def set_uniform_color(self, color: np.ndarray) -> None:
         if self.has_field("color"):
-            self._points[:, self._field.slices["color"]] = color
+            self.finalize()._points[:, self._field.slices["color"]] = color
         else:
             self._field = DynamicField(self._field)
             self._field.add_field("color", 3)
+            self.finalize()
             self._points = np.c_[self._points, np.tile(color, (len(self), 1))]
 
     def compute_normals(self, radius: float) -> None:
@@ -200,6 +193,7 @@ class PointCloud(object):
         radius: float
             Radius of the surrounding points used for normal calculation.
         """
+        self.finalize()
         tree = cKDTree(self.points)
         normals = [
             np.linalg.eigh(np.cov(self.points[tree.query_ball_point(p, radius), :].T))[1][:, 0] for p in self.points
