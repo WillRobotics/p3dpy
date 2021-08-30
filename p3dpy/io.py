@@ -107,21 +107,21 @@ def load_pcd(fd: Union[BinaryIO, TextIO, str]) -> pointcloud.PointCloud:
                 if fcnt == 1:
                     data.append(_type_dict[tp_s](d[cnt]))
                 else:
-                    data.append([_type_dict[tp_s](d[cnt + j]) for j in fcnt])
+                    data.append([_type_dict[tp_s](d[cnt + j]) for j in range(fcnt)])
                 cnt += fcnt
             loaddata.append(data)
     elif data_type == "binary":
         bytedata = fd.read()
         size = struct.calcsize(fmt)
         for i in range(len(bytedata) // size):
-            loaddata.append(struct.unpack(fmt, bytedata[(i * size) : ((i + 1) * size)]))
+            loaddata.append(list(struct.unpack(fmt, bytedata[(i * size) : ((i + 1) * size)])))
     elif data_type == "binary_compressed":
         compressed_size, uncompressed_size = struct.unpack("II", fd.read(8))
         compressed_data = fd.read(compressed_size)
         buf = lzf.decompress(compressed_data, uncompressed_size)
         size = struct.calcsize(fmt)
         for i in range(len(buf) // size):
-            loaddata.append(struct.unpack(fmt, buf[(i * size) : ((i + 1) * size)]))
+            loaddata.append(list(struct.unpack(fmt, buf[(i * size) : ((i + 1) * size)])))
     else:
         raise ValueError(f"Unsupported data type {data_type}.")
 
