@@ -9,7 +9,7 @@ license = "MIT"
 python = "^3.7"
 numpy = "^1.20.1"
 scipy = "^1.6.1"
-fastapi = "^0.63.0"
+fastapi = "^0.65.2"
 uvicorn = {extras = ["standard"], version = "^0.13.4"}
 Jinja2 = "^2.11.3"
 aiofiles = "^0.6.0"
