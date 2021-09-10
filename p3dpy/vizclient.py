@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List
 import base64
 import urllib.parse
 
@@ -15,7 +15,7 @@ class VizClient(object):
     def _encode(self, s: bytes) -> str:
         return base64.b64encode(s).decode("utf-8")
 
-    def post_pointcloud(self, pointcloud: PointCloud, name: str = "") -> dict:
+    def post_pointcloud(self, pointcloud: PointCloud, name: str = "") -> requests.models.Response:
         points = pointcloud.points.astype(np.float32).tobytes("C")
         colors = (
             (pointcloud.colors * 255).astype(np.uint8).tobytes("C")
@@ -27,9 +27,9 @@ class VizClient(object):
             urllib.parse.urljoin(self._url, "pointcloud/store"),
             json={"name": name, "points": self._encode(points), "colors": self._encode(colors)},
         )
-        return response.json()
+        return response
 
-    def post_pointcloud_array(self, pointclouds: List[PointCloud], names: List[str] = [], clear: bool = False) -> dict:
+    def post_pointcloud_array(self, pointclouds: List[PointCloud], names: List[str] = [], clear: bool = False) -> requests.models.Response:
         pointcloud_arr = []
         for i, pc in enumerate(pointclouds):
             points = pc.points.astype(np.float32).tobytes("C")
@@ -44,9 +44,9 @@ class VizClient(object):
             urllib.parse.urljoin(self._url, "pointcloud/store_array"),
             json={"array": pointcloud_arr, "clear": clear},
         )
-        return response.json()
+        return response
 
-    def update_pointcloud(self, name: str, pointcloud: PointCloud) -> dict:
+    def update_pointcloud(self, name: str, pointcloud: PointCloud) -> requests.models.Response:
         points = pointcloud.points.astype(np.float32).tobytes("C")
         colors = (
             (pointcloud.colors * 255).astype(np.uint8).tobytes("C")
@@ -57,7 +57,7 @@ class VizClient(object):
             urllib.parse.urljoin(self._url, f"pointcloud/update/{name}"),
             json={"name": "", "points": self._encode(points), "colors": self._encode(colors)},
         )
-        return response.json()
+        return response
 
     def get_pointcloud(self, name: str) -> PointCloud:
         response = requests.get(urllib.parse.urljoin(self._url, f"pointcloud/{name}"))
@@ -66,16 +66,16 @@ class VizClient(object):
         pointcloud._points = np.array(points[0])
         return pointcloud
 
-    def add_log(self, message: str, clear: bool = False) -> dict:
+    def add_log(self, message: str, clear: bool = False) -> requests.models.Response:
         message = message.replace("\n", "<br/>")
         response = requests.post(
             urllib.parse.urljoin(self._url, "log"),
             json={"log": "<p>" + message + "</p>", "clear": clear},
         )
-        return response.json()
+        return response
 
-    def get_parameters(self) -> dict:
+    def get_parameters(self) -> requests.models.Response:
         response = requests.get(
             urllib.parse.urljoin(self._url, "parameters"),
         )
-        return response.json()
+        return response
