@@ -1,7 +1,6 @@
-from typing import Callable, Deque, List, Optional
 from collections import deque
+from typing import Any, Callable, Deque, List
 
-from typing import Any, Deque
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 

@@ -1,7 +1,6 @@
-from typing import List
-
 import numpy as np
 from scipy.spatial import cKDTree
+
 from . import pointcloud
 
 

@@ -1,6 +1,6 @@
-from typing import List
 import base64
 import urllib.parse
+from typing import List
 
 import numpy as np
 import requests

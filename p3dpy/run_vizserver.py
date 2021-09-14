@@ -1,10 +1,10 @@
-import os
-from typing import Any, Optional
-import json
 import asyncio
-from asyncio.subprocess import PIPE, STDOUT
+import json
+import os
 import signal
 import webbrowser
+from asyncio.subprocess import PIPE, STDOUT
+from typing import Any, Optional
 
 
 class ServerProcess:

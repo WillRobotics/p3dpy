@@ -1,5 +1,5 @@
-from typing import DefaultDict, Tuple
 from collections import defaultdict
+from typing import DefaultDict, Tuple
 
 import numpy as np
 from scipy.spatial import cKDTree

@@ -1,9 +1,11 @@
-from typing import IO, Optional, Tuple, Union
 import struct
+from typing import IO, Optional, Tuple, Union
+
+import lzf
 import numpy as np
 import stl
 from plyfile import PlyData
-import lzf
+
 from . import pointcloud
 
 

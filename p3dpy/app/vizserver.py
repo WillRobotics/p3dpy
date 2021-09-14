@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-import os
-import base64
-import numpy as np
-from typing import Any, Dict, List, Union
 import asyncio
+import base64
+import os
+from typing import Any, Dict, List
+
+import numpy as np
 from fastapi import Body, FastAPI, Request, WebSocket
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
