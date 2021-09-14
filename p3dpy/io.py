@@ -1,4 +1,4 @@
-from typing import BinaryIO, Optional, TextIO, Tuple, Union
+from typing import IO, Optional, Tuple, Union
 import struct
 import numpy as np
 import stl
@@ -48,7 +48,7 @@ def _parse_pcd_header(lines: list) -> Tuple[dict, str]:
     return config, data_type
 
 
-def load_pcd(fd: Union[BinaryIO, TextIO, str]) -> pointcloud.PointCloud:
+def load_pcd(fd: Union[IO, str]) -> pointcloud.PointCloud:
     """Load PCD file format
 
     Parameters
@@ -96,8 +96,8 @@ def load_pcd(fd: Union[BinaryIO, TextIO, str]) -> pointcloud.PointCloud:
 
     loaddata = []
     if data_type == "ascii":
-        lines = fd.read().splitlines()
-        for d in lines:
+        data_lines = fd.read().splitlines()
+        for d in data_lines:
             d = d.split()
             cnt = 0
             data = []
@@ -150,14 +150,14 @@ def load_pcd(fd: Union[BinaryIO, TextIO, str]) -> pointcloud.PointCloud:
     return pc
 
 
-def load_stl(fd: Union[BinaryIO, TextIO, str], scale: float = 1.0) -> pointcloud.PointCloud:
+def load_stl(fd: Union[IO, str], scale: float = 1.0) -> pointcloud.PointCloud:
     if isinstance(fd, str):
         fd = open(fd, "rb")
     mesh = stl.mesh.Mesh.from_file("", fh=fd)
     return pointcloud.PointCloud(points=mesh.points.reshape((-1, 3)) * scale, field=pointcloud.PointXYZField())
 
 
-def load_ply(fd: Union[BinaryIO, TextIO, str]) -> pointcloud.PointCloud:
+def load_ply(fd: Union[IO, str]) -> pointcloud.PointCloud:
     if isinstance(fd, str):
         fd = open(fd, "rb")
     plydata = PlyData.read(fd)

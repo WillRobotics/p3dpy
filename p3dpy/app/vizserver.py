@@ -2,7 +2,7 @@
 import os
 import base64
 import numpy as np
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 import asyncio
 from fastapi import Body, FastAPI, Request, WebSocket
 from fastapi.responses import HTMLResponse
@@ -58,15 +58,16 @@ async def websocket_endpoint(ws: WebSocket):
     try:
         while True:
             data = await ws.receive_json()
-            send_data: List[List[np.ndarray]] = [[], []]
+            data_pack: List[List[np.ndarray]] = [[], []]
             for d in data:
                 if d in stored_data["pointcloud"]:
-                    send_data[0].append(stored_data["pointcloud"][d][0])
-                    send_data[1].append(stored_data["pointcloud"][d][1])
-            if len(send_data[0]) > 0:
-                send_data[0] = _encode(np.concatenate(send_data[0], axis=0).tobytes("C"))
-            if len(send_data[1]) > 0:
-                send_data[1] = _encode(np.concatenate(send_data[1], axis=0).tobytes("C"))
+                    data_pack[0].append(stored_data["pointcloud"][d][0])
+                    data_pack[1].append(stored_data["pointcloud"][d][1])
+            send_data = ["", ""]
+            if len(data_pack[0]) > 0:
+                send_data[0] = _encode(np.concatenate(data_pack[0], axis=0).tobytes("C"))
+            if len(data_pack[1]) > 0:
+                send_data[1] = _encode(np.concatenate(data_pack[1], axis=0).tobytes("C"))
             await ws.send_json(send_data)
     except:
         await ws.close()

@@ -29,7 +29,9 @@ class VizClient(object):
         )
         return response
 
-    def post_pointcloud_array(self, pointclouds: List[PointCloud], names: List[str] = [], clear: bool = False) -> requests.models.Response:
+    def post_pointcloud_array(
+        self, pointclouds: List[PointCloud], names: List[str] = [], clear: bool = False
+    ) -> requests.models.Response:
         pointcloud_arr = []
         for i, pc in enumerate(pointclouds):
             points = pc.points.astype(np.float32).tobytes("C")
