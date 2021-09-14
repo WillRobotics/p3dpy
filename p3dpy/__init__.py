@@ -1,11 +1,6 @@
+from . import (assignment, feature, filter, io, pointcloud, registration,
+               segmentation)
 from .pointcloud import PointCloud
 from .rgbdimage import RGBDImage
+from .run_vizserver import vizloop, vizspawn
 from .vizclient import VizClient
-from .run_vizserver import vizspawn, vizloop
-from . import pointcloud
-from . import assignment
-from . import feature
-from . import filter
-from . import io
-from . import segmentation
-from . import registration

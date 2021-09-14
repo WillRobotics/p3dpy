@@ -1,6 +1,7 @@
 from __future__ import annotations
-from typing import Any, Dict, Optional, Tuple, Union
+
 import copy
+from typing import Any, Dict, Optional, Tuple, Union
 
 import numpy as np
 from scipy.spatial import cKDTree

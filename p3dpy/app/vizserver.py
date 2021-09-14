@@ -6,11 +6,10 @@ from typing import Any, Dict, List
 
 import numpy as np
 from fastapi import Body, FastAPI, Request, WebSocket
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
 from fastapi.encoders import jsonable_encoder
 from fastapi.logger import logger
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
@@ -163,9 +162,10 @@ async def get_parameters():
 
 
 def main():
-    import uvicorn
     import argparse
     import json
+
+    import uvicorn
 
     parser = argparse.ArgumentParser(description="Visualization server for p3dpy.")
     parser.add_argument("--host", type=str, default="127.0.0.1", help="Host address.")

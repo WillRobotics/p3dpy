@@ -8,7 +8,6 @@ from plyfile import PlyData
 
 from . import pointcloud
 
-
 _field_dict = {
     "I1": "b",
     "I2": "h",
