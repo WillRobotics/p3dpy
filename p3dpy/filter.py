@@ -8,24 +8,24 @@ from . import pointcloud
 
 
 def remove_invalid_points(pc: pointcloud.PointCloud) -> pointcloud.PointCloud:
-    return pointcloud.PointCloud(pc._points[np.isfinite(pc._points).any(axis=1)], field=pc._field)
+    return pointcloud.PointCloud(pc._points[np.isfinite(pc._points).any(axis=1)], field=pc.field)
 
 
 def random_sampling(pc: pointcloud.PointCloud, n_sample: int) -> pointcloud.PointCloud:
-    return pointcloud.PointCloud(pc._points[np.random.randint(len(pc), size=n_sample), :], field=pc._field)
+    return pointcloud.PointCloud(pc._points[np.random.randint(len(pc), size=n_sample), :], field=pc.field)
 
 
 def pass_through_filter(
     pc: pointcloud.PointCloud, min_lim: float, max_lim: float, axis: int = 0
 ) -> pointcloud.PointCloud:
     axis_pc = pc.points[:, axis]
-    return pointcloud.PointCloud(pc._points[(axis_pc >= min_lim) & (axis_pc <= max_lim), :], field=pc._field)
+    return pointcloud.PointCloud(pc._points[(axis_pc >= min_lim) & (axis_pc <= max_lim), :], field=pc.field)
 
 
 def radius_outlier_removal(pc: pointcloud.PointCloud, radius: float, neighbor_counts: int) -> pointcloud.PointCloud:
     tree = cKDTree(pc.points)
     mask = [len(tree.query_ball_point(p, radius)) > neighbor_counts for p in pc.points]
-    return pointcloud.PointCloud(pc._points[mask, :], pc._field)
+    return pointcloud.PointCloud(pc._points[mask, :], pc.field)
 
 
 def statistical_outlier_removal(
@@ -36,7 +36,7 @@ def statistical_outlier_removal(
     avg_d = dd.mean(axis=1)
     std_d = dd.std(axis=1)
     dist_thresh = avg_d.mean() + std_ratio * std_d
-    return pointcloud.PointCloud(pc._points[avg_d < dist_thresh, :], pc._field)
+    return pointcloud.PointCloud(pc._points[avg_d < dist_thresh, :], pc.field)
 
 
 def voxel_grid_filter(pc: pointcloud.PointCloud, voxel_size: float) -> pointcloud.PointCloud:
@@ -72,10 +72,10 @@ def voxel_grid_filter(pc: pointcloud.PointCloud, voxel_size: float) -> pointclou
 
     def func(i):
         coord = tuple(
-            np.floor((pc._points[i, pc._field.slices["point"]] - min_bound) / voxel_size).astype(np.int32).tolist()
+            np.floor((pc._points[i, pc.field.slices["point"]] - min_bound) / voxel_size).astype(np.int32).tolist()
         )
         voxel_dic[coord].add_point(pc._points[i])
 
     func_v = np.frompyfunc(func, 1, 0)
     func_v(np.arange(len(pc)))
-    return pointcloud.PointCloud([v.get_mean() for v in voxel_dic.values()], pc._field)
+    return pointcloud.PointCloud([v.get_mean() for v in voxel_dic.values()], pc.field)

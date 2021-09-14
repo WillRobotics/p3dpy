@@ -127,25 +127,25 @@ def load_pcd(fd: Union[IO, str]) -> pointcloud.PointCloud:
         raise ValueError(f"Unsupported data type {data_type}.")
 
     for data in loaddata:
-        pc._points.append(np.zeros(pc._field.size()))
+        pc._points.append(np.zeros(pc.field.size()))
         for f, d in zip(config["FIELDS"], data):
             if f == "x":
-                pc._points[-1][pc._field.X] = d
+                pc._points[-1][pc.field.X] = d
             elif f == "y":
-                pc._points[-1][pc._field.Y] = d
+                pc._points[-1][pc.field.Y] = d
             elif f == "z":
-                pc._points[-1][pc._field.Z] = d
+                pc._points[-1][pc.field.Z] = d
             elif f == "rgb":
                 d = int(d)
-                pc._points[-1][pc._field.R] = float((d >> 16) & 0x000FF) / 255.0
-                pc._points[-1][pc._field.G] = float((d >> 8) & 0x000FF) / 255.0
-                pc._points[-1][pc._field.B] = float((d) & 0x000FF) / 255.0
+                pc._points[-1][pc.field.R] = float((d >> 16) & 0x000FF) / 255.0
+                pc._points[-1][pc.field.G] = float((d >> 8) & 0x000FF) / 255.0
+                pc._points[-1][pc.field.B] = float((d) & 0x000FF) / 255.0
             elif f == "normal_x":
-                pc._points[-1][pc._field.NX] = d
+                pc._points[-1][pc.field.NX] = d
             elif f == "normal_y":
-                pc._points[-1][pc._field.NY] = d
+                pc._points[-1][pc.field.NY] = d
             elif f == "normal_z":
-                pc._points[-1][pc._field.NZ] = d
+                pc._points[-1][pc.field.NZ] = d
 
     pc.finalize()
     return pc
