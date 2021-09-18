@@ -65,7 +65,7 @@ class VizClient(object):
         response = requests.get(urllib.parse.urljoin(self._url, f"pointcloud/{name}"))
         points = response.json()
         pointcloud = PointCloud()
-        pointcloud._points = np.array(points[0])
+        pointcloud.data = np.array(points[0])
         return pointcloud
 
     def add_log(self, message: str, clear: bool = False) -> requests.models.Response:

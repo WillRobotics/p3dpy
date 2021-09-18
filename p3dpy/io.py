@@ -89,7 +89,7 @@ def load_pcd(fd: Union[IO, str]) -> pointcloud.PointCloud:
     else:
         raise ValueError("Unsupport field type.")
 
-    pc = pointcloud.PointCloud(points=[], field=field)
+    pc = pointcloud.PointCloud(data=[], field=field)
     fmt = ""
     for i in range(len(config["FIELDS"])):
         fmt += config["COUNT"][i] if int(config["COUNT"][i]) > 1 else ""
@@ -127,25 +127,25 @@ def load_pcd(fd: Union[IO, str]) -> pointcloud.PointCloud:
         raise ValueError(f"Unsupported data type {data_type}.")
 
     for data in loaddata:
-        pc._points.append(np.zeros(pc.field.size()))
+        pc.data.append(np.zeros(pc.field.size()))
         for f, d in zip(config["FIELDS"], data):
             if f == "x":
-                pc._points[-1][pc.field.X] = d
+                pc.data[-1][pc.field.X] = d
             elif f == "y":
-                pc._points[-1][pc.field.Y] = d
+                pc.data[-1][pc.field.Y] = d
             elif f == "z":
-                pc._points[-1][pc.field.Z] = d
+                pc.data[-1][pc.field.Z] = d
             elif f == "rgb":
                 d = int(d)
-                pc._points[-1][pc.field.R] = float((d >> 16) & 0x000FF) / 255.0
-                pc._points[-1][pc.field.G] = float((d >> 8) & 0x000FF) / 255.0
-                pc._points[-1][pc.field.B] = float((d) & 0x000FF) / 255.0
+                pc.data[-1][pc.field.R] = float((d >> 16) & 0x000FF) / 255.0
+                pc.data[-1][pc.field.G] = float((d >> 8) & 0x000FF) / 255.0
+                pc.data[-1][pc.field.B] = float((d) & 0x000FF) / 255.0
             elif f == "normal_x":
-                pc._points[-1][pc.field.NX] = d
+                pc.data[-1][pc.field.NX] = d
             elif f == "normal_y":
-                pc._points[-1][pc.field.NY] = d
+                pc.data[-1][pc.field.NY] = d
             elif f == "normal_z":
-                pc._points[-1][pc.field.NZ] = d
+                pc.data[-1][pc.field.NZ] = d
 
     pc.finalize()
     return pc
@@ -155,7 +155,7 @@ def load_stl(fd: Union[IO, str], scale: float = 1.0) -> pointcloud.PointCloud:
     if isinstance(fd, str):
         fd = open(fd, "rb")
     mesh = stl.mesh.Mesh.from_file("", fh=fd)
-    return pointcloud.PointCloud(points=mesh.points.reshape((-1, 3)) * scale, field=pointcloud.PointXYZField())
+    return pointcloud.PointCloud(data=mesh.points.reshape((-1, 3)) * scale, field=pointcloud.PointXYZField())
 
 
 def load_ply(fd: Union[IO, str]) -> pointcloud.PointCloud:
@@ -164,5 +164,5 @@ def load_ply(fd: Union[IO, str]) -> pointcloud.PointCloud:
     plydata = PlyData.read(fd)
     points = plydata["vertex"][["x", "y", "z"]]
     return pointcloud.PointCloud(
-        points=points.view("<f4").reshape(points.shape + (-1,)), field=pointcloud.PointXYZField()
+        data=points.view("<f4").reshape(points.shape + (-1,)), field=pointcloud.PointXYZField()
     )

@@ -98,14 +98,37 @@ class DynamicField(FieldBase):
 
 
 class PointCloud(object):
-    """Point cloud class."""
+    """Point cloud class.
+    This class has a two-dimensional numpy array representing the point cloud,
+    and accesses the elements in the array by means of fields.
 
-    def __init__(self, points=[], field=PointXYZField()) -> None:
+    Examples
+    --------
+    In this example, you can use the field to extract only the point sequence
+    from a point cloud with points and colors.
+    >>> pc = PointCloud(np.random.rand(10, 6), field=PointXYZRGBField())
+    >>> pc.data.shape
+    (10, 6)
+    >>> points = pc.points
+    >>> points.shape
+    (10, 3)
+
+    How to specify the point field directly.
+    >>> points = pc.get_field("point")
+    >>> points.shape
+    (10, 3)
+    Or,
+    >>> points = pc.data[:, pc.field.slices["point"]]
+    >>> points.shape
+    (10, 3)
+    """
+
+    def __init__(self, data=[], field=PointXYZField()) -> None:
         """Constructor
 
         Parameters
         ----------
-        points: list or np.ndarray
+        data: list or np.ndarray
             2D ndarray or list of 1D ndarray.
             Each row represents one point of the point cloud.
             Each column represents one scalar field associated to its corresponding point.
@@ -114,24 +137,24 @@ class PointCloud(object):
             The field of data contained in each point.
         """
         self.field = field
-        self._points = points
+        self.data = data
 
     def __len__(self) -> int:
-        return len(self._points)
+        return len(self.data)
 
     def has_field(self, name: str) -> bool:
         return self.field.has_field(name)
 
     def get_field(self, name: str) -> np.ndarray:
-        return self.finalize()._points[:, self.field.slices[name]]
+        return self.finalize().data[:, self.field.slices[name]]
 
     def finalize(self) -> PointCloud:
-        if isinstance(self._points, list):
-            self._points = np.array(self._points)
+        if isinstance(self.data, list):
+            self.data = np.array(self.data)
         return self
 
     def mean(self) -> np.ndarray:
-        return self.finalize()._points.mean(axis=0)
+        return self.finalize().data.mean(axis=0)
 
     def min_point(self) -> Union[np.number[Any], np.ndarray]:
         return self.finalize().points.min(axis=0)
@@ -144,50 +167,50 @@ class PointCloud(object):
 
     @property
     def points(self) -> np.ndarray:
-        return self.finalize()._points[:, self.field.slices["point"]]
+        return self.finalize().data[:, self.field.slices["point"]]
 
     @property
     def normals(self) -> Optional[np.ndarray]:
         if self.has_field("normal"):
-            return self.finalize()._points[:, self.field.slices["normal"]]
+            return self.finalize().data[:, self.field.slices["normal"]]
         else:
             return None
 
     @property
     def colors(self) -> Optional[np.ndarray]:
         if self.has_field("color"):
-            return self.finalize()._points[:, self.field.slices["color"]]
+            return self.finalize().data[:, self.field.slices["color"]]
         else:
             return None
 
     def append(self, point: np.ndarray) -> None:
-        if isinstance(self._points, np.ndarray):
-            self._points = list(self._points)
-        self._points.append(point)
+        if isinstance(self.data, np.ndarray):
+            self.data = list(self.data)
+        self.data.append(point)
 
     def extend(self, points: np.ndarray) -> None:
-        if isinstance(self._points, np.ndarray):
-            self._points = list(self._points)
-        self._points.extend(points)
+        if isinstance(self.data, np.ndarray):
+            self.data = list(self.data)
+        self.data.extend(points)
 
     def transform_(self, trans: np.ndarray) -> None:
-        self.finalize()._points[:, self.field.slices["point"]] = np.dot(self.points, trans[:3, :3].T) + trans[:3, 3]
+        self.finalize().data[:, self.field.slices["point"]] = np.dot(self.points, trans[:3, :3].T) + trans[:3, 3]
         if self.has_field("normal"):
-            self._points[:, self.field.slices["normal"]] = np.dot(self.normals, trans[:3, :3].T)
+            self.data[:, self.field.slices["normal"]] = np.dot(self.normals, trans[:3, :3].T)
 
     def transform(self, trans: np.ndarray) -> PointCloud:
-        pc = PointCloud(copy.deepcopy(self._points), self.field)
+        pc = PointCloud(copy.deepcopy(self.data), self.field)
         pc.transform_(trans)
         return pc
 
     def set_uniform_color(self, color: np.ndarray) -> None:
         if self.has_field("color"):
-            self.finalize()._points[:, self.field.slices["color"]] = color
+            self.finalize().data[:, self.field.slices["color"]] = color
         else:
             self.field = DynamicField(self.field)
             self.field.add_field("color", 3)
             self.finalize()
-            self._points = np.c_[self._points, np.tile(color, (len(self), 1))]
+            self.data = np.c_[self.data, np.tile(color, (len(self), 1))]
 
     def compute_normals(self, radius: float) -> None:
         """Compute normal vectors.
@@ -203,8 +226,8 @@ class PointCloud(object):
             np.linalg.eigh(np.cov(self.points[tree.query_ball_point(p, radius), :].T))[1][:, 0] for p in self.points
         ]
         if self.has_field("normal"):
-            self._points[:, self.field.slices["normal"]] = normals
+            self.data[:, self.field.slices["normal"]] = normals
         else:
             self.field = DynamicField(self.field)
             self.field.add_field("normal", 3)
-            self._points = np.c_[self._points, normals]
+            self.data = np.c_[self.data, normals]

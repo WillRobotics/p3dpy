@@ -49,12 +49,12 @@ class RGBDImage(object):
         """
         field = pointcloud.PointXYZRGBField()
         pc = pointcloud.PointCloud(np.zeros(list(self._depth_img.shape) + [field.size()]), field)
-        pc._points[:, :, field.Z] = self._depth_img
+        pc.data[:, :, field.Z] = self._depth_img
         row, col = np.indices(self._depth_img.shape)
-        pc._points[:, :, field.X] = (col - intrinsic[0, 2]) * self._depth_img / intrinsic[0, 0]
-        pc._points[:, :, field.Y] = (row - intrinsic[1, 2]) * self._depth_img / intrinsic[1, 1]
-        pc._points[:, :, field.slices["color"]] = self._color_img
-        pc._points = pc._points.reshape((-1, 6))
-        pc._points = pc._points[np.isfinite(pc._points).all(axis=1), :]
+        pc.data[:, :, field.X] = (col - intrinsic[0, 2]) * self._depth_img / intrinsic[0, 0]
+        pc.data[:, :, field.Y] = (row - intrinsic[1, 2]) * self._depth_img / intrinsic[1, 1]
+        pc.data[:, :, field.slices["color"]] = self._color_img
+        pc.data = pc.data.reshape((-1, 6))
+        pc.data = pc.data[np.isfinite(pc.data).all(axis=1), :]
         pc.transform_(extrinsic)
         return pc
