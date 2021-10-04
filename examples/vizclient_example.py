@@ -20,4 +20,4 @@ res1 = client.post_pointcloud(pc1, 'test1')
 res2 = client.post_pointcloud(pc2, 'test2')
 res3 = client.post_pointcloud(pc3, 'test3')
 
-pp.vizloop()
+pp.vizloop(True)
