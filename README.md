@@ -38,7 +38,7 @@ pc = pp.io.load_pcd('data/bunny.pcd')
 pc.set_uniform_color([1.0, 0.0, 0.0])
 res = client.post_pointcloud(pc, 'test')
 
-pp.vizloop()
+pp.vizloop(browser=True)
 ```
 
 ## Visualization
