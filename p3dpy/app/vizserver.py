@@ -2,7 +2,7 @@
 import asyncio
 import base64
 import os
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 
 import numpy as np
 from fastapi import Body, FastAPI, Request, WebSocket
@@ -63,7 +63,7 @@ async def websocket_endpoint(ws: WebSocket):
                 if d in stored_data["pointcloud"]:
                     data_pack[0].append(stored_data["pointcloud"][d][0])
                     data_pack[1].append(stored_data["pointcloud"][d][1])
-            send_data = ["", ""]
+            send_data: List[Union[List, str]] = [[], []]
             if len(data_pack[0]) > 0:
                 send_data[0] = _encode(np.concatenate(data_pack[0], axis=0).tobytes("C"))
             if len(data_pack[1]) > 0:
