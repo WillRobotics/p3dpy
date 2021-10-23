@@ -1,5 +1,6 @@
 # p3dpy
 
+[![Build status](https://github.com/WillRobotics/p3dpy/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/WillRobotics/p3dpy/actions/workflows/ubuntu.yml/badge.svg)
 [![PyPI version](https://badge.fury.io/py/p3dpy.svg)](https://badge.fury.io/py/p3dpy)
 
 Numpy based simple pointcloud tools.

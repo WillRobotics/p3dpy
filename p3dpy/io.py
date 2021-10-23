@@ -152,6 +152,13 @@ def load_pcd(fd: Union[IO, str]) -> pointcloud.PointCloud:
 
 
 def load_stl(fd: Union[IO, str], scale: float = 1.0) -> pointcloud.PointCloud:
+    """Load STL file format
+
+    Parameters
+    ----------
+    fd: BinaryIO, TextIO or str
+        Input file name or StringIO data type.
+    """
     if isinstance(fd, str):
         fd = open(fd, "rb")
     mesh = stl.mesh.Mesh.from_file("", fh=fd)
@@ -159,6 +166,13 @@ def load_stl(fd: Union[IO, str], scale: float = 1.0) -> pointcloud.PointCloud:
 
 
 def load_ply(fd: Union[IO, str]) -> pointcloud.PointCloud:
+    """Load PLY file format
+
+    Parameters
+    ----------
+    fd: BinaryIO, TextIO or str
+        Input file name or StringIO data type.
+    """
     if isinstance(fd, str):
         fd = open(fd, "rb")
     plydata = PlyData.read(fd)
