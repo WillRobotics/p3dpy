@@ -26,6 +26,9 @@ class FieldBase(object):
     def __getitem__(self, name: str) -> slice:
         return self.slices[name]
 
+    def __setitem__(self, name: str, value: slice) -> None:
+        self.slices[name] = value
+
     def size(self) -> int:
         return 0
 
@@ -129,7 +132,7 @@ class PointCloud(object):
     (10, 3)
 
     How to specify the point field directly.
-    >>> points = pc.get_field("point")
+    >>> points = pc["point"]
     >>> points.shape
     (10, 3)
     Or,
@@ -157,11 +160,20 @@ class PointCloud(object):
     def __len__(self) -> int:
         return len(self.data)
 
+    def __getitem__(self, key: str) -> np.ndarray:
+        return self.get_field(key)
+
+    def __setitem__(self, key: str, value: np.ndarray) -> None:
+        self.set_field(key, value)
+
     def has_field(self, name: str) -> bool:
         return self.field.has_field(name)
 
     def get_field(self, name: str) -> np.ndarray:
         return self.finalize().data[:, self.field[name]]
+
+    def set_field(self, name: str, value: np.ndarray) -> None:
+        self.finalize().data[:, self.field[name]] = value
 
     def finalize(self) -> PointCloud:
         if isinstance(self.data, list):
