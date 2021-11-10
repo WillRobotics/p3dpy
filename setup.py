@@ -19,5 +19,5 @@ setup(
     long_description_content_type='text/markdown',
     install_requires=['numpy', 'scipy', 'fastapi', 'requests'],
     zip_safe=False,
-    entry_points={'console_scripts': ['vizserver=p3dpy.app.vizserver:main']}
+    entry_points={'console_scripts': ['vizserver=p3dpy.app.cli:main']}
 )

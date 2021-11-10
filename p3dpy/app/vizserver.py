@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 import asyncio
 import base64
+import json
 import os
 from typing import Any, Dict, List, Union
 
 import numpy as np
-from fastapi import Body, FastAPI, Request, WebSocket
+from fastapi import APIRouter, Body, FastAPI, Request, WebSocket
 from fastapi.encoders import jsonable_encoder
-from fastapi.logger import logger
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -35,24 +35,18 @@ def _decode(s: str) -> bytes:
     return base64.b64decode(s.encode())
 
 
-app = FastAPI()
+router = APIRouter()
 stored_data: Dict[str, Any] = {"pointcloud": {}, "log": "", "clearLog": False}
 parameters: Dict[str, Any] = {"max_points": 500000, "gui_params": {}}
-
-app.mount(
-    "/static",
-    StaticFiles(directory=os.path.join(os.path.dirname(p3dpy.__file__), "app/static"), html=True),
-    name="static",
-)
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(p3dpy.__file__), "app/templates"))
 
 
-@app.get("/", response_class=HTMLResponse)
+@router.get("/", response_class=HTMLResponse)
 async def get_webpage(request: Request):
     return templates.TemplateResponse("index.html", context={"request": request, "parameters": parameters})
 
 
-@app.websocket("/ws")
+@router.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
     try:
@@ -73,7 +67,7 @@ async def websocket_endpoint(ws: WebSocket):
         await ws.close()
 
 
-@app.websocket("/info")
+@router.websocket("/info")
 async def info_endpoint(ws: WebSocket):
     await ws.accept()
     try:
@@ -92,14 +86,14 @@ async def info_endpoint(ws: WebSocket):
         await ws.close()
 
 
-@app.get("/pointcloud/{name}")
+@router.get("/pointcloud/{name}")
 async def get_data(name: str):
     points, colors = stored_data["pointcloud"][name]
     json_data = jsonable_encoder([points.tolist(), colors.tolist()])
     return JSONResponse(content=json_data)
 
 
-@app.post("/pointcloud/store")
+@router.post("/pointcloud/store")
 async def store_data(data: PointCloudData):
     points = np.frombuffer(_decode(data.points), dtype=np.float32)
     points = points.reshape((-1, 3))
@@ -109,7 +103,7 @@ async def store_data(data: PointCloudData):
     return {"res": "ok", "name": data.name}
 
 
-@app.post("/pointcloud/store_array")
+@router.post("/pointcloud/store_array")
 async def store_data_array(data: PointCloudDataArray):
     if data.clear:
         stored_data["pointcloud"] = {}
@@ -124,7 +118,7 @@ async def store_data_array(data: PointCloudDataArray):
     return {"res": "ok", "names": names}
 
 
-@app.put("/pointcloud/update/{name}")
+@router.put("/pointcloud/update/{name}")
 async def update_data(name: str, data: PointCloudData):
     points = np.frombuffer(_decode(data.points), dtype=np.float32)
     points = points.reshape((-1, 3))
@@ -134,7 +128,7 @@ async def update_data(name: str, data: PointCloudData):
     return {"res": "ok", "name": data.name}
 
 
-@app.post("/log")
+@router.post("/log")
 async def store_log(body: dict = Body(...)):
     if isinstance(body["log"], str):
         stored_data["clearLog"] = body["clear"]
@@ -146,7 +140,7 @@ async def store_log(body: dict = Body(...)):
     return {"res": "error"}
 
 
-@app.post("/parameters/store")
+@router.post("/parameters/store")
 async def post_parameters(body: dict = Body(...)):
     for k, v in body.items():
         if k in parameters["gui_params"]:
@@ -154,27 +148,24 @@ async def post_parameters(body: dict = Body(...)):
     return {"res": "ok"}
 
 
-@app.get("/parameters")
+@router.get("/parameters")
 async def get_parameters():
     data = dict([(k, v[0]) for k, v in parameters["gui_params"].items()])
     json_data = jsonable_encoder(data)
     return JSONResponse(content=json_data)
 
 
-def main():
-    import argparse
-    import json
-
-    import uvicorn
-
-    parser = argparse.ArgumentParser(description="Visualization server for p3dpy.")
-    parser.add_argument("--host", type=str, default="127.0.0.1", help="Host address.")
-    parser.add_argument("--port", type=int, default=8000, help="Port number.")
-    parser.add_argument("--params", type=str, default="{}", help="Parameters on JSON format.")
-    args = parser.parse_args()
-    parameters["gui_params"] = json.loads(args.params)
-    uvicorn.run(app=app, host=args.host, port=args.port)
+def create_app():
+    app = FastAPI()
+    app.mount(
+        "/static",
+        StaticFiles(directory=os.path.join(os.path.dirname(p3dpy.__file__), "app/static"), html=True),
+        name="static",
+    )
+    app.include_router(router)
+    return app
 
 
-if __name__ == "__main__":
-    main()
+def set_parameters(params: Dict):
+    global parameters
+    parameters["gui_params"] = json.loads(params)
