@@ -17,7 +17,7 @@ class FieldBase(object):
     >>> field = FieldBase()
     >>> field.slices = {"hoge": slice(2, 4)}
     >>> arr = np.random.rand(10, 4)
-    >>> arr[:, field("hoge")].shape
+    >>> arr[:, field["hoge"]].shape
     (10, 2)
     """
     def __init__(self) -> None:
