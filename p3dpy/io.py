@@ -32,6 +32,7 @@ _type_dict = {
 
 def _parse_pcd_header(lines: list) -> Tuple[dict, str]:
     config = {}
+    config["HEIGHT"] = 1
     data_type = "ascii"
     for c in lines:
         c = c.split()
@@ -39,7 +40,7 @@ def _parse_pcd_header(lines: list) -> Tuple[dict, str]:
             continue
         if c[0] == "FIELDS" or c[0] == "SIZE" or c[0] == "TYPE" or c[0] == "COUNT":
             config[c[0]] = c[1:]
-        elif c[0] == "WIDTH" or c[0] == "POINTS":
+        elif c[0] == "WIDTH" or c[0] == "HEIGHT" or c[0] == "POINTS":
             config[c[0]] = int(c[1])
         elif c[0] == "DATA":
             data_type = c[1]
@@ -120,9 +121,27 @@ def load_pcd(fd: Union[IO, str]) -> pointcloud.PointCloud:
         compressed_size, uncompressed_size = struct.unpack("II", fd.read(8))
         compressed_data = fd.read(compressed_size)
         buf = lzf.decompress(compressed_data, uncompressed_size)
+        field_sizes = []
+        for i in range(len(config["FIELDS"])):
+            field_fmt = config["COUNT"][i] if int(config["COUNT"][i]) > 1 else ""
+            field_fmt += _field_dict[config["TYPE"][i] + config["SIZE"][i]]
+            field_sizes.append(struct.calcsize(field_fmt))
         size = struct.calcsize(fmt)
-        for i in range(len(buf) // size):
-            loaddata.append(list(struct.unpack(fmt, buf[(i * size) : ((i + 1) * size)])))
+        field_offsets = [0] + np.cumsum(field_sizes).tolist()[:-1]
+        field_buf = []
+        offset = 0
+        for i, fs in enumerate(field_sizes):
+            step = fs * config["WIDTH"] * config["HEIGHT"]
+            field_buf.append(buf[offset : (offset + step)])
+            offset += step
+        bytedata = bytearray(len(buf))
+        for i in range(config["WIDTH"] * config["HEIGHT"]):
+            for j, fs in enumerate(field_sizes):
+                i_start = i * size + field_offsets[j]
+                i_end = i_start + fs
+                bytedata[i_start : i_end] = field_buf[j][(i * fs) : ((i + 1) * fs)]
+        for i in range(len(bytedata) // size):
+            loaddata.append(list(struct.unpack(fmt, bytedata[(i * size) : ((i + 1) * size)])))
     else:
         raise ValueError(f"Unsupported data type {data_type}.")
 
