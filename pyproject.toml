@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "p3dpy"
-version = "0.12.0"
+version = "0.13.0"
 description = ""
 authors = ["nekanat <nekanat.stock@gmail.com>"]
 license = "MIT"
