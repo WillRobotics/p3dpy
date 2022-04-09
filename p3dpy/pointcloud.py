@@ -47,6 +47,16 @@ class PointXYZField(FieldBase):
     def size(self) -> int:
         return 3
 
+    def get_field_index(self, s: str) -> Optional[Union[int, slice]]:
+        if s == "x":
+            return self.X
+        elif s == "y":
+            return self.Y
+        elif s == "z":
+            return self.Z
+        else:
+            return None
+
 
 class PointXYZRGBField(PointXYZField):
     R = 3
@@ -58,6 +68,15 @@ class PointXYZRGBField(PointXYZField):
 
     def size(self) -> int:
         return 6
+
+    def get_field_index(self, s: str) -> Optional[Union[int, slice]]:
+        index = super(PointXYZNormalField, self).get_field_index(s)
+        if index is not None:
+            return index
+        if s == "rgb":
+            return self.slices["color"]
+        else:
+            return None
 
 
 class PointXYZRGBAField(PointXYZField):
@@ -72,6 +91,15 @@ class PointXYZRGBAField(PointXYZField):
     def size(self) -> int:
         return 7
 
+    def get_field_index(self, s: str) -> Optional[Union[int, slice]]:
+        index = super(PointXYZNormalField, self).get_field_index(s)
+        if index is not None:
+            return index
+        if s == "rgba":
+            return slice(self.slices["color"].start, self.slices["alpha"].stop)
+        else:
+            return None
+
 
 class PointXYZNormalField(PointXYZField):
     NX = 3
@@ -84,6 +112,19 @@ class PointXYZNormalField(PointXYZField):
     def size(self) -> int:
         return 6
 
+    def get_field_index(self, s: str) -> Optional[Union[int, slice]]:
+        index = super(PointXYZNormalField, self).get_field_index(s)
+        if index is not None:
+            return index
+        if s == "normal_x":
+            return self.NX
+        elif s == "normal_y":
+            return self.NY
+        elif s == "normal_z":
+            return self.NZ
+        else:
+            return None
+
 
 class PointXYZRGBNormalField(PointXYZRGBField):
     NX = 6
@@ -95,6 +136,19 @@ class PointXYZRGBNormalField(PointXYZRGBField):
 
     def size(self) -> int:
         return 9
+
+    def get_field_index(self, s: str) -> Optional[Union[int, slice]]:
+        index = super(PointXYZRGBNormalField, self).get_field_index(s)
+        if index is not None:
+            return index
+        if s == "normal_x":
+            return self.NX
+        elif s == "normal_y":
+            return self.NY
+        elif s == "normal_z":
+            return self.NZ
+        else:
+            return None
 
 
 class DynamicField(FieldBase):

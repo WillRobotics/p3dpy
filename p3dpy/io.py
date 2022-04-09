@@ -148,23 +148,16 @@ def load_pcd(fd: Union[IO, str]) -> pointcloud.PointCloud:
     for data in loaddata:
         pc.data.append(np.zeros(pc.field.size()))
         for f, d in zip(config["FIELDS"], data):
-            if f == "x":
-                pc.data[-1][pc.field.X] = d
-            elif f == "y":
-                pc.data[-1][pc.field.Y] = d
-            elif f == "z":
-                pc.data[-1][pc.field.Z] = d
-            elif f == "rgb":
+            index = pc.field.get_field_index(f)
+            if index is None:
+                continue
+            if f == "rgb":
                 d = int(d)
                 pc.data[-1][pc.field.R] = float((d >> 16) & 0x000FF) / 255.0
                 pc.data[-1][pc.field.G] = float((d >> 8) & 0x000FF) / 255.0
                 pc.data[-1][pc.field.B] = float((d) & 0x000FF) / 255.0
-            elif f == "normal_x":
-                pc.data[-1][pc.field.NX] = d
-            elif f == "normal_y":
-                pc.data[-1][pc.field.NY] = d
-            elif f == "normal_z":
-                pc.data[-1][pc.field.NZ] = d
+            else :
+                pc.data[-1][index] = d
 
     pc.finalize()
     return pc
