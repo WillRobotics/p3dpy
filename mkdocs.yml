@@ -1,0 +1,15 @@
+site_name: p3dpy
+theme:
+  name: material
+nav:
+  - index.md
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          rendering:
+            show_source: false
+      watch:
+        - p3dpy
