@@ -11,3 +11,4 @@ plyfile
 types-requests
 mkdocstrings
 mkdocs-material
+pytkdocs[numpy-style]
