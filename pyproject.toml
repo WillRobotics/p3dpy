@@ -23,6 +23,7 @@ matplotlib = {version = "^3.3.4", optional = true}
 transforms3d = {version = "^0.3.1", optional = true}
 scikit-learn = {version = "^0.24.1", optional = true}
 h5py = {version = "^3.3.0", optional = true}
+depthai = {version = "^2.10.0", optional = true}
 
 [tool.poetry.scripts]
 vizserver = "p3dpy.app.cli:main"
@@ -40,4 +41,4 @@ requires = ["poetry-core>=1.0.0", "setuptools"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.extras]
-examples = ["h5py", "matplotlib", "transforms3d", "scikit-learn", "pyrealsense2"]
+examples = ["h5py", "matplotlib", "transforms3d", "scikit-learn", "pyrealsense2", "depthai"]
