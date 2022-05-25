@@ -5,13 +5,13 @@ from . import pointcloud
 
 
 def _kabsch(
-    source: pointcloud.PointCloud,
-    target: pointcloud.PointCloud,
+    source: np.ndarray,
+    target: np.ndarray,
     corres: np.ndarray,
 ) -> np.ndarray:
-    src_avg = source.points.mean(axis=0)
-    trg_avg = target.points[corres, :].mean(axis=0)
-    hh = np.dot((source.points - src_avg).T, target.points[corres, :] - trg_avg)
+    src_avg = source.mean(axis=0)
+    trg_avg = target[corres, :].mean(axis=0)
+    hh = np.dot((source - src_avg).T, target[corres, :] - trg_avg)
     hh /= corres.shape[0]
     u, s, vh = np.linalg.svd(hh, full_matrices=True)
     ss = np.identity(3)
@@ -51,7 +51,7 @@ def icp_registration(
     for _ in range(max_itr):
         dd, ii = target_tree.query(cur_pc.points, k=1, distance_upper_bound=dist_thresh)
         ii = ii[~np.isinf(dd)]
-        tr = _kabsch(cur_pc, target, ii)
+        tr = _kabsch(cur_pc.points[~np.isinf(dd)], target.points, ii)
         trans = np.dot(tr, trans)
         cur_pc.transform_(tr)
         tmp_rmse = _compute_rmse(cur_pc.points, target_tree)
