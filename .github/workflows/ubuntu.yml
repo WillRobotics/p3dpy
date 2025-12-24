@@ -9,10 +9,10 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        python-version: [3.7, 3.8]
+        python-version: [3.11, 3.12]
     steps:
     - name: Checkout source code
       uses: actions/checkout@v2
@@ -26,10 +26,10 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y curl
-    - name: Install poetry
+    - name: Install uv
       run: |
-        curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
-        echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
     - name: Setup
       run: make setup
     - name: Test
