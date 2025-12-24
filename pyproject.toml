@@ -21,6 +21,7 @@ dependencies = [
     "numpy-stl>=2.16.0,<3",
     "plyfile>=0.8",
     "types-requests>=2.25.6,<3",
+    "markupsafe==2.0.1",
 ]
 
 [tool.hatch.build.targets.sdist]

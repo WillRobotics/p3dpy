@@ -146,7 +146,7 @@ def load_pcd(fd: Union[IO, str]) -> pointcloud.PointCloud:
         raise ValueError(f"Unsupported data type {data_type}.")
 
     for data in loaddata:
-        pc.data.append(np.zeros(pc.field.size()))
+        pc.append(np.zeros(pc.field.size()))
         for f, d in zip(config["FIELDS"], data):
             index = pc.field.get_field_index(f)
             if index is None:

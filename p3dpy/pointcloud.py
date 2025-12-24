@@ -195,7 +195,7 @@ class PointCloud(object):
     (10, 3)
     """
 
-    def __init__(self, data: np.ndarray | list = [], field: FieldBase | None = None) -> None:
+    def __init__(self, data: np.ndarray | list | None = None, field: FieldBase | None = None) -> None:
         """Constructor
 
         Parameters
@@ -209,7 +209,10 @@ class PointCloud(object):
             The field of data contained in each point.
         """
         self.field = field or PointXYZField()
-        self.data = self._check_data(data)
+        if data is not None and not (isinstance(data, list) and len(data) == 0):
+            self.data = self._check_data(data)
+        else:
+            self.data = np.array([])
 
     def _check_data(self, data: np.ndarray | list) -> None:
         if isinstance(data, list):
