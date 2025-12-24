@@ -195,21 +195,30 @@ class PointCloud(object):
     (10, 3)
     """
 
-    def __init__(self, data=[], field=PointXYZField()) -> None:
+    def __init__(self, data: np.ndarray | list = [], field: FieldBase | None = None) -> None:
         """Constructor
 
         Parameters
         ----------
-        data: list or np.ndarray
-            2D ndarray or list of 1D ndarray.
+        data: np.ndarray | list
+            2D ndarray or list.
             Each row represents one point of the point cloud.
             Each column represents one scalar field associated to its corresponding point.
 
         field: FieldBase
             The field of data contained in each point.
         """
-        self.field = field
-        self.data = data
+        self.field = field or PointXYZField()
+        self.data = self._check_data(data)
+
+    def _check_data(self, data: np.ndarray | list) -> None:
+        if isinstance(data, list):
+            data = np.array(data)
+        if data.ndim != 2:
+            raise ValueError("Data must be a 2D array")
+        if data.shape[1] != self.field.size():
+            raise ValueError("Data must have the same number of columns as the field")
+        return data
 
     def __len__(self) -> int:
         return len(self.data)
@@ -221,37 +230,119 @@ class PointCloud(object):
         self.set_field(key, value)
 
     def has_field(self, name: str) -> bool:
+        """Check if the point cloud has a field.
+
+        Parameters
+        ----------
+        name: str
+            The name of the field.
+
+        Returns
+        -------
+        bool
+            True if the point cloud has the field, False otherwise.
+        """
         return self.field.has_field(name)
 
     def get_field(self, name: str) -> np.ndarray:
+        """Get a field from the point cloud.
+
+        Parameters
+        ----------
+        name: str
+            The name of the field.
+
+        Returns
+        -------
+        np.ndarray
+            A 2D array representing the field.
+        """
         return self.finalize().data[:, self.field[name]]
 
     def set_field(self, name: str, value: np.ndarray) -> None:
+        """Set a field in the point cloud.
+
+        Parameters
+        ----------
+        name: str
+            The name of the field.
+        value: np.ndarray
+            A 2D array representing the field.
+        """
         self.finalize().data[:, self.field[name]] = value
 
     def finalize(self) -> PointCloud:
+        """Finalize the point cloud.
+
+        Returns
+        -------
+        PointCloud
+            The finalized point cloud.
+        """
         if isinstance(self.data, list):
             self.data = np.array(self.data)
         return self
 
     def mean(self) -> np.ndarray:
+        """Get the mean point of the point cloud.
+
+        Returns
+        -------
+        np.ndarray
+            The mean point of the point cloud.
+        """
         return self.finalize().data.mean(axis=0)
 
     def min_point(self) -> Union[np.number[Any], np.ndarray]:
+        """Get the minimum point of the point cloud.
+
+        Returns
+        -------
+        Union[np.number[Any], np.ndarray]
+            The minimum point of the point cloud.
+        """
         return self.finalize().points.min(axis=0)
 
     def max_point(self) -> Union[np.number[Any], np.ndarray]:
+        """Get the maximum point of the point cloud.
+
+        Returns
+        -------
+        Union[np.number[Any], np.ndarray]
+            The maximum point of the point cloud.
+        """
         return self.finalize().points.max(axis=0)
 
     def bounding_box(self) -> Tuple[Union[np.number[Any], np.ndarray], Union[np.number[Any], np.ndarray]]:
+        """Get the bounding box of the point cloud.
+
+        Returns
+        -------
+        Tuple[Union[np.number[Any], np.ndarray], Union[np.number[Any], np.ndarray]]
+            A tuple containing the minimum and maximum points of the point cloud.
+        """
         return self.min_point(), self.max_point()
 
     @property
     def points(self) -> np.ndarray:
+        """Get the points of the point cloud.
+
+        Returns
+        -------
+        np.ndarray
+            A 2D array representing the points of the point cloud.
+        """
         return self.finalize().data[:, self.field["point"]]
 
     @property
     def normals(self) -> Optional[np.ndarray]:
+        """Get the normals of the point cloud.
+
+        Returns
+        -------
+        Optional[np.ndarray]
+            A 2D array representing the normals of the point cloud.
+        """
         if self.has_field("normal"):
             return self.finalize().data[:, self.field["normal"]]
         else:
@@ -259,32 +350,74 @@ class PointCloud(object):
 
     @property
     def colors(self) -> Optional[np.ndarray]:
+        """Get the colors of the point cloud.
+
+        Returns
+        -------
+        Optional[np.ndarray]
+            A 2D array representing the colors of the point cloud.
+        """
         if self.has_field("color"):
             return self.finalize().data[:, self.field["color"]]
         else:
             return None
 
     def append(self, point: np.ndarray) -> None:
+        """Append a point to the point cloud.
+
+        Parameters
+        ----------
+        point: np.ndarray
+            A 1D array representing a point.
+        """
         if isinstance(self.data, np.ndarray):
             self.data = list(self.data)
         self.data.append(point)
 
     def extend(self, points: np.ndarray) -> None:
+        """Extend the point cloud with another point cloud.
+
+        Parameters
+        ----------
+        points: np.ndarray
+            A 2D array representing the points to extend the point cloud with.
+        """
         if isinstance(self.data, np.ndarray):
             self.data = list(self.data)
         self.data.extend(points)
 
     def transform_(self, trans: np.ndarray) -> None:
+        """Transform the point cloud.
+
+        Parameters
+        ----------
+        trans: np.ndarray
+            A 3x3 matrix representing the transformation.
+        """
         self.finalize().data[:, self.field["point"]] = np.dot(self.points, trans[:3, :3].T) + trans[:3, 3]
         if self.has_field("normal"):
             self.data[:, self.field["normal"]] = np.dot(self.normals, trans[:3, :3].T)
 
     def transform(self, trans: np.ndarray) -> PointCloud:
+        """Transform the point cloud.
+
+        Parameters
+        ----------
+        trans: np.ndarray
+            A 3x3 matrix representing the transformation.
+        """
         pc = PointCloud(copy.deepcopy(self.data), self.field)
         pc.transform_(trans)
         return pc
 
     def set_uniform_color(self, color: np.ndarray) -> None:
+        """Set the uniform color of the point cloud.
+
+        Parameters
+        ----------
+        color: np.ndarray
+            A 1D array representing the color.
+        """
         if self.has_field("color"):
             self.finalize().data[:, self.field["color"]] = color
         else:

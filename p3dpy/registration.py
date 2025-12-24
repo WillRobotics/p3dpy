@@ -43,6 +43,15 @@ def icp_registration(
     tol: float = 1.0e-6,
     max_itr: int = 30,
 ) -> np.ndarray:
+    """Register a source point cloud to a target point cloud.
+
+    Parameters
+    ----------
+    source: pointcloud.PointCloud
+        The source point cloud.
+    target: pointcloud.PointCloud
+        The target point cloud.
+    """
     target_tree = cKDTree(target.points)
     cur_pc = pointcloud.PointCloud(source.points, field=pointcloud.PointXYZField())
     trans = initial_pos
